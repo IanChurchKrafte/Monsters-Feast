@@ -25,28 +25,32 @@ public class DeerGoose : GenericAnimal
         //randomly move around the map, not going through terrain
         //walk in a dingle direction for an ammount of time, stop for a bit, then continue on in the same or different direction
         Rigidbody2D deerGoose = GetComponent<Rigidbody2D>();
-        if(deerGoose == null){
-            Debug.LogError("No Rigidbody2D attached to DeerGoose");
-            return;
+        if(!isDead){
+            if(deerGoose == null){
+                Debug.LogError("No Rigidbody2D attached to DeerGoose");
+                return;
+            }
+            int walkTime = Random.Range(3, 7); //run for a random time between 3-7 seconds
+            Vector2 direction = Random.insideUnitCircle.normalized; //pick a random direction to run in
+            float counter = 0f;
+            while(counter <= walkTime){
+                //walk
+                counter += Time.deltaTime;
+                deerGoose.AddForce(direction * runSpeed, ForceMode2D.Impulse);
+                //Debug.Log("counter1: "+counter+" walkTime: "+walkTime);
+                //Debug.Log("in time test loop");
+            }  
+            counter = 0f;
+            int idleTime = Random.Range(5,7);
+            while(counter <= idleTime){
+                //do nothing
+                counter += Time.deltaTime;
+                //Debug.Log("counter2: "+counter+" idleTime: "+idleTime);
+            }
         }
-        int walkTime = Random.Range(3, 7); //run for a random time between 3-7 seconds
-        Vector2 direction = Random.insideUnitCircle.normalized; //pick a random direction to run in
-        float counter = 0f;
-        while(counter <= walkTime){
-            //walk
-            counter += Time.deltaTime;
-            deerGoose.AddForce(direction * runSpeed, ForceMode2D.Impulse);
-            //Debug.Log("counter1: "+counter+" walkTime: "+walkTime);
-            //Debug.Log("in time test loop");
-        }  
-        counter = 0f;
-        int idleTime = Random.Range(5,7);
-        while(counter <= idleTime){
-            //do nothing
-            counter += Time.deltaTime;
-            //Debug.Log("counter2: "+counter+" idleTime: "+idleTime);
+        else{ //it dead
+            deerGoose.velocity = Vector2.zero;
         }
-     
     }
 
     void MonsterCheck(float Adistance, float Pdistance){ //do the monster checks
