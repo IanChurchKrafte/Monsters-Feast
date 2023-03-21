@@ -5,84 +5,79 @@ using Animal;
 
 public class Goat : GenericAnimal 
 {   
-    private Vector2 direction;
+    public float moveSpeed = goat.RunSpeed;
+    public bool isWalking;
+    public float walkTime;
+    private float walkCounter;
+    public float waitTime;
+    private float waitCounter;
+
+    private int walkDirection;
+
     void move()
     {
-        //it moves!!!
         Rigidbody2D goat = GetComponent<Rigidbody2D>();
-        if (!isDead) {
-            if (goat == null){
-                Debug.LogError("Goat is not attached to any Rigidbody2D");
-                return;
+        
+        if(!isDead){
+            if (isWalking)
+            {
+                ChooseDirection(); 
+                walkCounter -= Time.deltaTime;
+                if (walkCounter < 0)
+                {
+                    isWalking = false;
+                    waitCounter = waitTime; 
+                }
+                switch(walkDirection)
+                {
+                    case 0:
+                        goat.velocity = new Vector2(0, moveSpeed);
+                        break;
+                    case 1:
+                        goat.velocity = new Vector2(moveSpeed, 0);
+                        break;
+                    case 2:
+                        goat.velocity = new Vector2(0, -moveSpeed);
+                        break;
+                    case 3:
+                        goat.velocity = new Vector2(-moveSpeed, 0);
+                        break;
+                }
             }
-
-        int walkT = Random.Range(3, 7);
-        direction = Random.insideUnitCircle.normalized;
-        float counter = 0f;
-        while (counter <= walkT)
-        {
-            counter+=Time.deltaTime;
-            goat.AddForce(direction * runSpeed, ForceMode2D.Impulse);
-            ChangeDirection();
+            else
+            {
+                waitCounter -= Time.deltaTime;
+                goat.velocity = Vector2.zero;
+                if(waitCounter < 0)
+                {
+                    ChooseDirection();
+                }
+            } 
         }
-        counter = 0f;
-        int idleTime = Random.Range(5,7);
-        while (counter <= idleTime)
-        {
-            counter+= Time.deltaTime;
-        }
-        }
-        else
-        {
+        else 
+        { 
             goat.velocity = Vector2.zero;
         }
+    }
+
+      void Start()
+    {
+        SetAnimalData("Goat", 200, 0.9f, 5f, 1.8f, 0.05f);
         
     }
 
-    void ChangeDirection()
+    void ChooseDirection()
     {
-        int directions = Random.Range(0,4);
-        switch(directions)
-        {
-            case 0:
-                direction = Vector2.right;
-                break;
-            case 1:
-                direction = Vector2.up;
-                break;
-            case 2:
-                direction = Vector2.left;
-                break;
-            case 3:
-                direction = Vector2.down;
-                break;
-            default:
-                break;
-        }
+        walkDirection = Random.Range(0, 3);
+        isWalking = true;
+        walkCounter = walkTime;
     }
-
-    void Start()
-    {
-
-        /*
-        Stats: 
-
-        Animal type = Goat
-        Health =
-        Awareness level =
-        Run Speed = 
-        Flee Speed Multiplier = 
-        Calorie % = 
-        */
-
-        //animal will now exist
-        
-        SetAnimalData("Goat", 200, .8f, 0.00005f, 1.8f,.08f);
-
-    }
-
     void Update()
     {
         move();
+
     }
+
+
+
 }
