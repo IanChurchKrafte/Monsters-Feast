@@ -5,14 +5,17 @@ using Animal;
 
 public class Goat : GenericAnimal 
 {   
-    public float moveSpeed = goat.RunSpeed;
+    public float moveSpeed = 0.5f; 
     public bool isWalking;
     public float walkTime;
     private float walkCounter;
     public float waitTime;
     private float waitCounter;
-
+    public float rotationSpeed = 720;
     private int walkDirection;
+   
+
+
 
     void move()
     {
@@ -31,23 +34,23 @@ public class Goat : GenericAnimal
                 switch(walkDirection)
                 {
                     case 0:
-                        goat.velocity = new Vector2(0, moveSpeed);
+                        goat.velocity = new Vector2(-moveSpeed, moveSpeed);
                         break;
                     case 1:
-                        goat.velocity = new Vector2(moveSpeed, 0);
+                        goat.velocity = new Vector2(moveSpeed, -moveSpeed);
                         break;
                     case 2:
-                        goat.velocity = new Vector2(0, -moveSpeed);
+                        goat.velocity = new Vector2(-moveSpeed, -moveSpeed);
                         break;
                     case 3:
-                        goat.velocity = new Vector2(-moveSpeed, 0);
+                        goat.velocity = new Vector2(moveSpeed, moveSpeed);
                         break;
                 }
+
             }
             else
             {
                 waitCounter -= Time.deltaTime;
-                goat.velocity = Vector2.zero;
                 if(waitCounter < 0)
                 {
                     ChooseDirection();
@@ -60,21 +63,46 @@ public class Goat : GenericAnimal
         }
     }
 
+
+
+    void MonsterCheck(float adist, float pdist) 
+    {
+        AwarenessCheck(adist);
+        PerceptionCheck(pdist);
+    }
+
       void Start()
     {
-        SetAnimalData("Goat", 200, 0.9f, 5f, 1.8f, 0.05f);
+        SetAnimalData("Goat", 100, 0.9f, moveSpeed, 1.8f, 0.05f);
+         
         
     }
 
     void ChooseDirection()
     {
-        walkDirection = Random.Range(0, 3);
+        walkDirection = Random.Range(0, 4);
         isWalking = true;
         walkCounter = walkTime;
     }
     void Update()
     {
         move();
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+        Vector2 velocity = new Vector2 (h,v);
+        velocity.Normalize();
+        Vector3 movement = new Vector3(velocity.x, velocity.y, 0) * moveSpeed;
+
+        // rotation handled here
+        if (velocity != Vector2.zero)
+        {
+            float targetAngle = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg + 90;
+            Quaternion toRotate = Quaternion.AngleAxis(targetAngle, Vector3.forward);
+            gameObject.transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotate, rotationSpeed * Time.deltaTime);
+        }
+        
+        //float adist, pdist, dist;
+        //MonsterCheck();
 
     }
 
