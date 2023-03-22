@@ -15,7 +15,8 @@ public class ChameleToad : GenericAnimal
     private bool jumping = false;
     //public float jumpHeight = 10f;
     private float timer = 0.0f, start;
-    float corpseDistance = transform.localScale.x * 30.0f;
+    public float corpseDistance = 30.0f;
+    
 
 
     private Rigidbody2D rb;
@@ -69,6 +70,10 @@ public class ChameleToad : GenericAnimal
     }
 
     IEnumerator FrogJump(){
+        if(rb == null){
+            Debug.LogError("No Rigidbody2D attached to DeerGoose");
+            yield break;
+        }
         //pick new jump target
         jumpTarget = RandomJumpTarget();
 
@@ -150,21 +155,24 @@ public class ChameleToad : GenericAnimal
         flee speed multiplyer = 1.8x
         calorie % = 0.08 = 7% 
         */
-        SetAnimalData("ChameleToad", 200, 0.8f, 0.00005f, 1.8f, 0.07f); //setting the animal data for a DeerGoose
+        SetAnimalData("ChameleToad", 15, 0.8f, 0.00005f, 1.8f, 0.07f); //setting the animal data for a DeerGoose
         changeAlpha(false);
         rb = GetComponent<Rigidbody2D>();
         // FrogJump();
-        StartCoroutine(FrogJump());
+        //StartCoroutine(FrogJump());
     }
 
     // Update is called once per frame
     void Update()
     {
-        timer += Time.deltaTime;
-        checkAlpha();
-        FrogTimeCheck();
+        if(!isDead){
+            timer += Time.deltaTime;
 
-        
-        CorpseCheck(corpseDistance);
+            checkAlpha();
+
+            FrogTimeCheck();
+            
+            CorpseCheck(corpseDistance * gameObject.transform.localScale.x);
+        }
     }
 }
