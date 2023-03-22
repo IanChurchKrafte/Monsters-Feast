@@ -55,7 +55,7 @@ public class MonsterBehavior : MonoBehaviour
         // SPRINT - Left Shift
         if (Input.GetKey(KeyCode.LeftShift))
         {
-            movement *= acceleration;
+            real_speed *= acceleration;
         }
 
         // STEALTH - Left Control       
@@ -66,7 +66,7 @@ public class MonsterBehavior : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftControl) && stealth_active)
         {
             Debug.Log("stealth activated");
-            movement /= 4.0f;
+            real_speed /= 4.0f;
             // POUNCE - right mouse button (RMB)
             if (Input.GetKeyDown(KeyCode.Mouse1) && !pounce_active)
             {
@@ -79,7 +79,7 @@ public class MonsterBehavior : MonoBehaviour
                 if (pounce > 0)
                 {
                     pounce -= Time.deltaTime;
-                    movement = new Vector3(0.0f, 0.0f, 0.0f);       // remain stationary when in pounce state
+                    real_speed = 0;       // remain stationary when in pounce state
                 }
                 else
                 {
@@ -88,7 +88,6 @@ public class MonsterBehavior : MonoBehaviour
                     stealth_active = false;
                     
                     // Make the "POUNCE" state; cancels stealth key held down by player
-        
                 }
             }
             else
