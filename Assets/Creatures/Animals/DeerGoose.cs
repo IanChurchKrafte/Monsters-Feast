@@ -72,7 +72,7 @@ public class DeerGoose : GenericAnimal
         flee speed multiplyer = 1.8x
         calorie % = 0.08 = 8% 
         */
-        SetAnimalData("DeerGoose", 200, 0.8f, 0.00005f, 1.8f, 0.08f); //setting the animal data for a DeerGoose
+        SetAnimalData("DeerGoose", 200, 0.8f, 0.00005f, 1.8f, 0.18f); //setting the animal data for a DeerGoose
     }
     
     // Update is called once per frame
