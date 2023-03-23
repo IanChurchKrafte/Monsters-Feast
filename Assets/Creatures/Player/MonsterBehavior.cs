@@ -12,14 +12,17 @@ public class MonsterBehavior : MonoBehaviour
     public bool stealth_active = false;
     public float pounce = 0.75f;                // time limit for pounce
     public bool pounce_active = false;
+    bool collided;
     // public float pounce_offset = 5.0f;
     public Vector3 goalPosition;
+    Rigidbody2D rb;
     
     // POUNCE TIMER: 6 second limit
 
     // Start is called before the first frame update
     void Start()
     {
+        rb = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
@@ -31,7 +34,8 @@ public class MonsterBehavior : MonoBehaviour
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
         Vector2 velocity = new Vector2 (h,v);
-        velocity.Normalize();
+        if(h != 0 && v != 0)
+            velocity.Normalize();
         Vector3 movement = new Vector3(velocity.x, velocity.y, 0) * real_speed;
 
         // rotation handled here
@@ -59,21 +63,21 @@ public class MonsterBehavior : MonoBehaviour
         }
 
         // STEALTH - Left Control       
-        if (Input.GetKeyDown(KeyCode.LeftControl) && !stealth_active)
+        if ((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetAxis("Stalk") > 0) && !stealth_active)
         {
             stealth_active = true;
         }
-        if (Input.GetKey(KeyCode.LeftControl) && stealth_active)
+        if ((Input.GetKey(KeyCode.LeftControl) || Input.GetAxis("Stalk") > 0) && stealth_active)
         {
             Debug.Log("stealth activated");
             real_speed /= 4.0f;
-            // POUNCE - right mouse button (RMB)
-            if (Input.GetKeyDown(KeyCode.Mouse1) && !pounce_active)
+            // POUNCE - left mouse button (LMB)
+            if ((Input.GetMouseButtonDown(0) || Input.GetAxis("Attack") > 0) && !pounce_active)
             {
                 pounce_active = true;
             }
 
-            if (Input.GetKey(KeyCode.Mouse1) && pounce_active)
+            if ((Input.GetMouseButtonDown(0) || Input.GetAxis("Attack") > 0) && pounce_active)
             {
                 Debug.Log("pounce timer activated");
                 if (pounce > 0)
@@ -98,8 +102,8 @@ public class MonsterBehavior : MonoBehaviour
         float currentAngle = transform.rotation.eulerAngles.z - 90;
 
         // directional influence
-        Vector3 trueMovement = new Vector3(Mathf.Cos(currentAngle * Mathf.Deg2Rad), Mathf.Sin(currentAngle * Mathf.Deg2Rad), 0) * real_speed;       // trig
-        gameObject.transform.position += trueMovement;
+        Vector2 trueMovement = new Vector3(Mathf.Cos(currentAngle * Mathf.Deg2Rad), Mathf.Sin(currentAngle * Mathf.Deg2Rad)) * real_speed;       // trig
+        rb.MovePosition(rb.position + trueMovement);
     }
     
     void Pounce_Timer(float timeStart)
@@ -108,5 +112,13 @@ public class MonsterBehavior : MonoBehaviour
         {
             Debug.Log(" ButtonUp ");
         }
+    }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        collided = true;
+    }
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        collided = false;
     }
 }

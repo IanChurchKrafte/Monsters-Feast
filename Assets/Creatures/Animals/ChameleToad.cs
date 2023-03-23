@@ -156,7 +156,7 @@ public class ChameleToad : GenericAnimal
         calorie % = 0.08 = 7% 
         */
         SetAnimalData("ChameleToad", 15, 0.8f, 0.00005f, 1.8f, 0.07f); //setting the animal data for a DeerGoose
-        changeAlpha(false);
+        changeAlpha(true);
         rb = GetComponent<Rigidbody2D>();
         // FrogJump();
         //StartCoroutine(FrogJump());
