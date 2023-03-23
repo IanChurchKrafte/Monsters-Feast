@@ -6,27 +6,33 @@ public class MonsterBehavior : MonoBehaviour
 {
     public int health;                           // monster health
     public float stamina;                        // monster stamina
+
     public float speed = 0.025f;                 // base speed
+    public float real_speed;
     public float rotationSpeed = 720;
     public float acceleration = 3.5f;            // sprint factor
+
+    public bool attacking = false;
+    public float timeToAttack = 2;
+    public float attackTimer = 0;
+    public float attackDMG = 20;
+    public float attackDMG_scale;
+
     public bool stealth_active = false;
-    public float pounce = 0.75f;                // time limit for pounce
+    public float timeToPounce = 2.5f;                // time limit for pounce
+    public float pounceTimer;
     public bool pounce_active = false;
-    // public float pounce_offset = 5.0f;
-    public Vector3 goalPosition;
-    
-    // POUNCE TIMER: 6 second limit
 
     // Start is called before the first frame update
     void Start()
     {
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
-        float real_speed = speed;
+        real_speed = speed;
         // monster movement - WASD or arrow keys
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
@@ -46,67 +52,92 @@ public class MonsterBehavior : MonoBehaviour
         {
             real_speed = 0;
         }
-        
-        // if (movement != Vector3.zero)
-        // {
-        //     gameObject.transform.rotation = Quaternion.AngleAxis(30, Vector3.forward);
-        // }
 
-        // SPRINT - Left Shift
+        // MONSTER SPRINT - Left Shift
         if (Input.GetKey(KeyCode.LeftShift))
         {
             real_speed *= acceleration;
         }
 
-        // STEALTH - Left Control       
+         // MONSTER ATTACK - LMB
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            attacking = true;
+        }
+
+        if (attacking)
+        {
+            Debug.Log("damage: " + attackDMG);
+            attacking = false;
+        }
+
+        // STEALTH - Left Control
+
+        // IF USER HOLDS DOWN LEFT CTRL, STEALTH IS ACTIVE
         if (Input.GetKeyDown(KeyCode.LeftControl) && !stealth_active)
         {
             stealth_active = true;
         }
+
+        // once stealth is active, decrease speed
         if (Input.GetKey(KeyCode.LeftControl) && stealth_active)
         {
-            Debug.Log("stealth activated");
+            //Debug.Log("stealth activated");
             real_speed /= 4.0f;
-            // POUNCE - right mouse button (RMB)
-            if (Input.GetKeyDown(KeyCode.Mouse1) && !pounce_active)
+            if (Input.GetKeyDown(KeyCode.Mouse0))
             {
+                pounceTimer = Time.time;
+                //Debug.Log("pounce timer activated");
                 pounce_active = true;
             }
 
-            if (Input.GetKey(KeyCode.Mouse1) && pounce_active)
+            if (pounce_active)
             {
-                Debug.Log("pounce timer activated");
-                if (pounce > 0)
+                real_speed = 0;
+                attackDMG_scale = 0;
+                // IF THE KEY HAS BEEN HELD AND 2.5 SECONDS HAVE PASSED
+                if (Input.GetKey(KeyCode.Mouse0) && pounce_active && Time.time - pounceTimer > 2.5f)
                 {
-                    pounce -= Time.deltaTime;
-                    real_speed = 0;       // remain stationary when in pounce state
+                    // CANCEL OUT BOTH STEALTH AND POUNCE STATE
+                    pounce_active = false;
+                    stealth_active = false;
+                    //Debug.Log("released");
+                    
+                    // SET MAX DAMAGE TO 175
+                    attackDMG_scale = 175;
+                    //Debug.Log("attack damage scale " + attackDMG_scale);
                 }
                 else
                 {
-                    Debug.Log("Released");
-                    pounce_active = false;
-                    stealth_active = false;
-                    
-                    // Make the "POUNCE" state; cancels stealth key held down by player
+                    // DETECT TIME FOR HOW LONG POUNCE IS HELD
+                    // THE LONGER THE POUNCE, THE MORE DAMAGING AN ATTACK IS
+                    attackDMG_scale = attackDMG + (Time.time - pounceTimer) * 62;
+                    //Debug.Log("attackDMG_scale " + attackDMG_scale);
+
+                    // IF POUUNCE IS RELEASED BEFORE THE TIME LIMIT
+
+                    if (Input.GetKeyUp(KeyCode.Mouse0))
+                    {
+                        Debug.Log("release");
+                        // RESET POUNCE TIMER
+                        pounceTimer = 0;
+                        pounce_active = false;
+                    }
                 }
             }
             else
             {
-                pounce = 0.75f;
+                pounce_active = false;
             }
+            //Debug.Log("DMG after pounce: " + attackDMG);
         }
-        float currentAngle = transform.rotation.eulerAngles.z - 90;
-
-        // directional influence
-        Vector3 trueMovement = new Vector3(Mathf.Cos(currentAngle * Mathf.Deg2Rad), Mathf.Sin(currentAngle * Mathf.Deg2Rad), 0) * real_speed;       // trig
-        gameObject.transform.position += trueMovement;
-    }
-    
-    void Pounce_Timer(float timeStart)
-    {
-        if ((pounce) > 0)
+        if (Input.GetKeyUp(KeyCode.LeftControl))
         {
-            Debug.Log(" ButtonUp ");
+            stealth_active = false;
         }
+
+        float currentAngle = transform.rotation.eulerAngles.z - 90;
+        Vector3 trueMovement = new Vector3(Mathf.Cos(currentAngle * Mathf.Deg2Rad), Mathf.Sin(currentAngle * Mathf.Deg2Rad), 0) * real_speed;
+        gameObject.transform.position += trueMovement;
     }
 }
