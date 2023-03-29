@@ -2746,6 +2746,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Monster
       objectReference: {fileID: 0}
+    - target: {fileID: 8712486078710948850, guid: bdded4f3b90ddae44960ce845337ed8d, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 8712486078710948854, guid: bdded4f3b90ddae44960ce845337ed8d, type: 3}
       propertyPath: m_BodyType
       value: 0
