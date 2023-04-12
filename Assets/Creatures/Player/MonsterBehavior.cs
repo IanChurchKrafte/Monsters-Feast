@@ -4,36 +4,48 @@ using UnityEngine;
 
 public class MonsterBehavior : MonoBehaviour
 {
-    public int health;                           // monster health
-    public float stamina;                        // monster stamina
-
-    public float speed = 0.025f;                 // base speed
+    // * Health and Stamina * //
+    public int maxHealth = 100; 
+    public int currentHealth;
+    public float stamina;
+    
+    // * Movement Parameters * //
+    public float speed = 0.025f;
     public float real_speed;
     public float rotationSpeed = 720;
-    public float acceleration = 3.5f;            // sprint factor
+    public float acceleration = 1.5f;
 
-    public bool attacking = false;
-    public float timeToAttack = 2;
-    public float attackTimer = 0;
-    public float attackDMG = 20;
-    public float attackDMG_scale;
+    // * Attacking * //
+    public GameObject attackArea = default;
+    public static GameObject eatBox = default;
+    public static int attackDMG = 20;
+    private float timeToAttack = 0.25f;
+    private float attackTimer = 0f;
 
-    public bool stealth_active = false;
-    float timeToPounce = 0;                // time limit for pounce
+    // * Stealth * //
+    public static bool stealth_active = false;
+    
+    // * Pounce * //
+    public static bool pounce_active = false;
     public float maxTimeToPounce = 2.5f;
-    public float pounceTimer;
-    public bool pounce_active = false;
-    bool collided;
-    // public float pounce_offset = 5.0f;
+    public float pounceTimer;               // time limit for pounce
+    
+    // * Lunge * //
+    public float lungeTimer;
+
+    public bool collided;
     public Vector3 goalPosition;
     Rigidbody2D rb;
-    
-    // POUNCE TIMER: 6 second limit
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        attackArea = transform.GetChild(0).gameObject;
+        eatBox = transform.GetChild(1).gameObject;
+        currentHealth = maxHealth;
+        attackArea.SetActive(false);
+        eatBox.SetActive(false);
     }
 
     // Update is called once per frame
@@ -44,15 +56,13 @@ public class MonsterBehavior : MonoBehaviour
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
         Vector2 velocity = new Vector2 (h,v);
-        if(h != 0 && v != 0)
-            velocity.Normalize();
+        if (h != 0 && v != 0) velocity.Normalize();
         Vector3 movement = new Vector3(velocity.x, velocity.y, 0) * real_speed;
 
         // rotation handled here
         if (velocity != Vector2.zero)
         {
             float targetAngle = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg + 90;
-            // ISSUE: rotation is only being handled on x and y axes
             Quaternion toRotate = Quaternion.AngleAxis(targetAngle, Vector3.forward);
             gameObject.transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotate, rotationSpeed * Time.deltaTime);
         }
@@ -61,83 +71,68 @@ public class MonsterBehavior : MonoBehaviour
             real_speed = 0;
         }
 
-        // MONSTER SPRINT - Left Shift
+        // * Monster sprints  * //
         if (Input.GetKey(KeyCode.LeftShift))
         {
             real_speed *= acceleration;
         }
 
-         // MONSTER ATTACK - LMB
-        if (Input.GetKeyDown(KeyCode.Mouse0))
+        // * Bite - only works if stealth is NOT active * //
+        if ((Input.GetMouseButtonDown(0) || Input.GetKeyDown("joystick button 0")) && !stealth_active)
         {
-            attacking = true;
+            Bite();
         }
 
-        if (attacking)
+        // * Bite functionality * //
+        if (AttackHitbox.attacking)
         {
-            Debug.Log("damage: " + attackDMG);
-            attacking = false;
+            attackTimer += Time.deltaTime;
+            if (attackTimer >= timeToAttack)
+            {
+                AttackHitbox.attacking = false;
+                attackArea.SetActive(AttackHitbox.attacking);
+                attackTimer = 0;
+            }
         }
 
-        // STEALTH - Left Control
+        // * Lunging functionality * //
+        if (AttackHitbox.lunging)
+        {
+            lungeTimer -= Time.deltaTime;
+            if (lungeTimer <= 0)
+            {
+                Debug.Log("lunge is over");
+                // Debug.Log("lunge lasted for " + lungeTimer + " seconds");
+                AttackHitbox.lunging = false;
+                attackArea.SetActive(AttackHitbox.lunging);
+                lungeTimer = 0;
+            }
 
-        // IF USER HOLDS DOWN LEFT CTRL, STEALTH IS ACTIVE
-        if ((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetAxis("Stalk") > 0) && !stealth_active)
+        }
+
+        // * Monster activates stealth * //
+        if (((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown("joystick button 6")) || Input.GetAxis("Stalk") > 0) && !stealth_active)
         {
             stealth_active = true;
         }
 
-        // once stealth is active, decrease speed
+        // * Decrease Monster's speed if stealth is active * //
         if ((Input.GetKey(KeyCode.LeftControl) || Input.GetAxis("Stalk") > 0) && stealth_active)
         {
-            //Debug.Log("stealth activated");
             real_speed /= 4.0f;
-            // POUNCE - left mouse button (LMB)
+            // * Pounce is only active under stealth * //
             if ((Input.GetMouseButtonDown(0) || Input.GetAxis("Attack") > 0))
             {
-                pounceTimer = Time.time;
-                //Debug.Log("pounce timer activated");
                 pounce_active = true;
             }
             if (pounce_active)
             {
-                real_speed *= acceleration * 0.65f * 4;
-                attackDMG_scale = 0;
-                // IF THE KEY HAS BEEN HELD AND 2.5 SECONDS HAVE PASSED
-                if ((Input.GetKey(KeyCode.Mouse0) || Input.GetAxis("Attack") > 0) && pounce_active && Time.time - pounceTimer >= maxTimeToPounce)
-                {
-                    // CANCEL OUT BOTH STEALTH AND POUNCE STATE
-                    pounce_active = false;
-                    stealth_active = false;
-                    //Debug.Log("released");
-                    
-                    // SET MAX DAMAGE TO 175
-                    attackDMG_scale = 175;
-                    //Debug.Log("attack damage scale " + attackDMG_scale);
-                }
-                else
-                {
-                    // DETECT TIME FOR HOW LONG POUNCE IS HELD
-                    // THE LONGER THE POUNCE, THE MORE DAMAGING AN ATTACK IS
-                    attackDMG_scale = attackDMG + (Time.time - pounceTimer) * 62;
-                    //Debug.Log("attackDMG_scale " + attackDMG_scale);
-
-                    // IF POUUNCE IS RELEASED BEFORE THE TIME LIMIT
-
-                    if (Input.GetKeyUp(KeyCode.Mouse0) || Input.GetAxis("Attack") <= 0)
-                    {
-                        Debug.Log("release");
-                        // RESET POUNCE TIMER
-                        pounceTimer = 0;
-                        pounce_active = false;
-                    }
-                }
+                Pounce();
             }
             else
             {
                 pounce_active = false;
             }
-            //Debug.Log("DMG after pounce: " + attackDMG);
         }
         float currentAngle = transform.rotation.eulerAngles.z - 90;
 
@@ -145,18 +140,53 @@ public class MonsterBehavior : MonoBehaviour
         Vector2 trueMovement = new Vector3(Mathf.Cos(currentAngle * Mathf.Deg2Rad), Mathf.Sin(currentAngle * Mathf.Deg2Rad)) * real_speed;       // trig
         rb.MovePosition(rb.position + trueMovement);
     }
-    
-    void Pounce_Timer(float timeStart)
-    {
-        if ((Input.GetKeyUp(KeyCode.LeftControl) || Input.GetAxis("Stalk") == 0))
-        {
-            stealth_active = false;
-        }
 
-        float currentAngle = transform.rotation.eulerAngles.z - 90;
-        Vector3 trueMovement = new Vector3(Mathf.Cos(currentAngle * Mathf.Deg2Rad), Mathf.Sin(currentAngle * Mathf.Deg2Rad), 0) * real_speed;
-        gameObject.transform.position += trueMovement;
+    // * Standard Bite Attack * //
+    private void Bite()
+    {
+        AttackHitbox.attacking = true;
+        attackArea.SetActive(AttackHitbox.attacking);
     }
+
+    // * Monster enters Pounce state * //
+    private void Pounce()
+    {
+        real_speed = 0;
+        pounceTimer += Time.deltaTime;
+        // * If pounce is held AND timer exceeds limit * //
+        if (Input.GetMouseButton(0) && pounceTimer >= maxTimeToPounce)
+        {   
+            AttackHitbox.dmg_scale = 175;           // max out Monster's damage
+            lungeTimer = maxTimeToPounce;           // set lunge timer to max time
+            pounceTimer = 0;                        // reset pounce timer
+
+            pounce_active = false;
+            stealth_active = false;
+
+            Lunge();
+        }
+        else
+        {
+            AttackHitbox.dmg_scale = (int)(attackDMG + (pounceTimer) * 62);
+            if (Input.GetMouseButtonUp(0))
+            {
+                Debug.Log("release");
+                lungeTimer = pounceTimer;           // lunge timer is set depending on how long Monster stays in pounce
+                pounceTimer = 0;                    // reset pounce timer
+                pounce_active = false;
+                stealth_active = false;
+                Lunge();
+            }
+        }
+    }
+
+    // * Lunge Attack (only from Pounce) * //
+    private void Lunge()
+    {
+        AttackHitbox.lunging = true;
+        attackArea.SetActive(AttackHitbox.lunging);
+    }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         collided = true;
@@ -164,5 +194,17 @@ public class MonsterBehavior : MonoBehaviour
     private void OnCollisionExit2D(Collision2D collision)
     {
         collided = false;
+    }
+
+    // What if monster takes damage?
+    public void TakeDamage(int damage)
+    {
+        int temp = currentHealth - damage;
+        if(temp <= 0){
+            //dead
+            currentHealth = 0;
+        }
+        else
+            currentHealth = temp;
     }
 }
