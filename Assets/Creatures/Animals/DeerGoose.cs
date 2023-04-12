@@ -8,6 +8,23 @@ using Animal;
  
 public class DeerGoose : GenericAnimal
 {
+    // public int maxHealth = 150;
+    // public int currentHealth;
+    public float awareDistance = 5.0f, perceptionDistance = 50.0f;
+    public float corpseDistance = 30.0f;
+    public float walkSpeed = 1.25f, sprintSpeed = 1.25f;
+    public float fleeDistance = 20.0f;
+    
+
+
+    Rigidbody2D deerGoose;
+    
+    private float spottedCorpse;
+    public bool isFleeing = false;
+    private GameObject player;
+    IEnumerator move;
+    private bool isMoving = false;
+
     void CorpseCheck(float distance){ //checks for any nearby corpses
         Vector2 position = transform.position;
         Vector2 rotation = transform.rotation.eulerAngles;
@@ -16,47 +33,134 @@ public class DeerGoose : GenericAnimal
             GameObject hitObject = hit.collider.gameObject;
             if(hitObject.CompareTag("deadAnimal")){
                 //player is within the inner circle of the animal, animal will flee
-                Vector2 normal = hit.normal;
-                AnimalFlee(normal);
-            }
-        }
-    }
-    void MoveAround(){
-        //randomly move around the map, not going through terrain
-        //walk in a dingle direction for an ammount of time, stop for a bit, then continue on in the same or different direction
-        Rigidbody2D deerGoose = GetComponent<Rigidbody2D>();
-        if(!isDead){
-            if(deerGoose == null){
-                Debug.LogError("No Rigidbody2D attached to DeerGoose");
+                // Vector2 normal = hit.normal;
+                // spottedCorpse = timer;
+                // isFleeing = true;
+                // AnimalFlee(normal);
+                Debug.Log("Flee Check 3");
+                FleeCheck();
                 return;
             }
-            int walkTime = Random.Range(3, 7); //run for a random time between 3-7 seconds
-            Vector2 direction = Random.insideUnitCircle.normalized; //pick a random direction to run in
-            float counter = 0f;
-            while(counter <= walkTime){
-                //walk
-                counter += Time.deltaTime;
-                deerGoose.AddForce(direction * runSpeed, ForceMode2D.Impulse);
-                //Debug.Log("counter1: "+counter+" walkTime: "+walkTime);
-                //Debug.Log("in time test loop");
-            }  
-            counter = 0f;
-            int idleTime = Random.Range(5,7);
-            while(counter <= idleTime){
-                //do nothing
-                counter += Time.deltaTime;
-                //Debug.Log("counter2: "+counter+" idleTime: "+idleTime);
+        }
+        // else{
+        //     if(isFleeing && (timer - spottedCorpse) > 2.0f){
+        //         //stop fleeing
+        //         deerGoose.velocity = Vector2.zero;
+        //         isFleeing = false;
+        //         return;
+        //     }
+        // }
+    }
+        IEnumerator Flee(){
+            Vector2 direction = transform.position - player.transform.position;
+            float elapsed = 0f;
+
+            float distanceToPlayer = (player.transform.position - transform.position).magnitude;
+
+            Debug.Log("start of flee, elapsed: "+elapsed+", isFleeing: "+isFleeing);
+            while(elapsed < 7.5f && isFleeing){
+                //stop moving
+                StopCoroutine(move);
+
+                direction = player.transform.position - transform.position;
+
+                RotateTowardsDirection(direction);
+
+                Debug.Log("Animal fleeing");
+                transform.Translate(Vector3.up * Time.deltaTime * sprintSpeed * 0.1f);
+
+                //update elapsed time
+                elapsed += Time.deltaTime;
+
+                yield return null;
+            }
+            Debug.Log("end of flee");
+            //StartCoroutine(MoveAround());
+            //isFleeing = false;
+        }
+
+        public void FleeCheck(){ //checks distance from player befor starting/stopping the flee
+            float distanceToPlayer = (player.transform.position - transform.position).magnitude;
+            
+            if(distanceToPlayer < fleeDistance){
+                Debug.Log("starting flee in FleeCheck()");
+                StartCoroutine(Flee());
+                StopCoroutine(move);
+                isFleeing = true;
+            }
+            if(distanceToPlayer >= fleeDistance && isFleeing){
+                Debug.Log("Stoping flee in FleeCheck()");
+                StopCoroutine(Flee());
+                isFleeing = false;
+                startFlee = false;
             }
         }
-        else{ //it dead
-            deerGoose.velocity = Vector2.zero;
+
+    void RotateTowardsDirection(Vector2 direction){
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg + 90;
+        transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+    }
+    IEnumerator MoveAround(){
+        while(true && !isDead){
+            // if(isFleeing) yield return null;
+            isMoving = true;
+            //choose a random direction
+            Vector2 direction = Random.insideUnitCircle.normalized;
+            
+            //rotate in that direction
+            RotateTowardsDirection(direction);
+
+            //move in that direction
+            float moveTime = Random.Range(2f, 5f);
+            float elapsed = 0f;
+            
+            while(elapsed < moveTime){
+                transform.Translate(Vector3.up * Time.deltaTime * walkSpeed);
+
+                //update elapsed time
+                elapsed += Time.deltaTime;
+
+                yield return null;
+            }
+            // isMoving = false;
+            Debug.Log("im still in move around");
+            //stop moving and wait in place for a bit
+            float waitTime = Random.Range(3f, 5f);
+            elapsed = 0f;
+            while(elapsed < waitTime){
+                elapsed += Time.deltaTime;
+
+                yield return null;
+            }
+            yield return null;
+            //isMoving = false;
+
         }
+        if(isDead) deerGoose.velocity = Vector2.zero;
+    }
+    private IEnumerator walkAroundDelay;
+    IEnumerator WalkAroundDelay(){
+        yield return new WaitForSeconds(3.5f);
+        walkAroundDelay = null;
     }
 
     void MonsterCheck(float Adistance, float Pdistance){ //do the monster checks
-        AwarenessCheck(Adistance);
-        PerceptionCheck(Pdistance);
+        if(AwarenessCheck(Adistance) || PerceptionCheck(Pdistance)){
+            Debug.Log("flee check 2");
+            FleeCheck();
+        }
     }
+
+    // public void TakeDamage(int damage){
+    //     int temp = currentHealth - damage;
+    //     if(temp <= 0){
+    //         //dead
+    //         currentHealth = 0;
+    //     }
+    //     else
+    //         currentHealth = temp;
+    // }
+
 
     // Start is called before the first frame update
     void Start()
@@ -69,20 +173,45 @@ public class DeerGoose : GenericAnimal
         flee speed multiplyer
         calorie % = 0.08 = 8% 
         */
-        SetAnimalData("DeerGoose", 200, 0.8f, 0.000005f, 1.8f, 0.08f); //setting the animal data for a DeerGoose
+        deerGoose = GetComponent<Rigidbody2D>();
+        SetAnimalData("DeerGoose", 150, 0.8f, 0.5f, 1.8f, 0.18f); //setting the animal data for a DeerGoose
+        //currentHealth = maxHealth;
+        move = MoveAround();
+        StartCoroutine(move);
+        player = GameObject.Find("Monster"); 
     }
+
+    
+    
     
     // Update is called once per frame
     void Update()
     {
-        //move around randomly
-        MoveAround();
-        //check for monster
-        float awareDistance = 50.0f, perceptionDistance = 100.0f;
-        MonsterCheck(awareDistance, perceptionDistance);
-        //check for corpses
-        float corpseDistance = 30.0f;
-        CorpseCheck(corpseDistance);
-        //check for humans?
+        if(!isDead){ 
+            if(isFleeing){
+                StopCoroutine(move);
+                isMoving = false;
+                //start flee
+                Debug.Log("Flee Check 1");
+
+                FleeCheck();
+            }
+            else{
+                if(!isMoving){
+                    Debug.Log("isMoving: "+isMoving);
+                    isMoving = true;
+                    StartCoroutine(move);
+                } 
+                //check if monster is nearby
+                MonsterCheck(awareDistance, perceptionDistance);
+
+                //check if there are nearby corpses
+                CorpseCheck(corpseDistance);
+            }
+        }
+        else{
+            StopCoroutine(move);
+            isMoving = false;
+        }
     }
 }
