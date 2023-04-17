@@ -11,7 +11,7 @@ public class MonsterBehavior : MonoBehaviour
     
     // * Movement Parameters * //
     public float speed = 0.025f;
-    public float real_speed;
+    public static float real_speed;
     public float rotationSpeed = 720;
     public float acceleration = 1.5f;
 
@@ -62,9 +62,14 @@ public class MonsterBehavior : MonoBehaviour
         // rotation handled here
         if (velocity != Vector2.zero)
         {
-            float targetAngle = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg + 90;
-            Quaternion toRotate = Quaternion.AngleAxis(targetAngle, Vector3.forward);
-            gameObject.transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotate, rotationSpeed * Time.deltaTime);
+            // only rotate if the monster is not in eating mode
+            if (EatBox.canEat == false)
+            {
+                float targetAngle = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg + 90;
+                Quaternion toRotate = Quaternion.AngleAxis(targetAngle, Vector3.forward);
+                gameObject.transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotate, rotationSpeed * Time.deltaTime);
+            }
+            else rb.velocity = Vector2.zero;
         }
         else
         {
@@ -99,7 +104,7 @@ public class MonsterBehavior : MonoBehaviour
         if (AttackHitbox.lunging)
         {
             lungeTimer -= Time.deltaTime;
-            if (lungeTimer <= 0)
+            if (lungeTimer <= 0 || collided)
             {
                 Debug.Log("lunge is over");
                 // Debug.Log("lunge lasted for " + lungeTimer + " seconds");
@@ -121,10 +126,8 @@ public class MonsterBehavior : MonoBehaviour
         {
             real_speed /= 4.0f;
             // * Pounce is only active under stealth * //
-            if ((Input.GetMouseButtonDown(0) || Input.GetAxis("Attack") > 0))
-            {
-                pounce_active = true;
-            }
+            if ((Input.GetMouseButtonDown(0) || Input.GetAxis("Attack") > 0)) pounce_active = true;
+
             if (pounce_active)
             {
                 Pounce();
@@ -138,7 +141,10 @@ public class MonsterBehavior : MonoBehaviour
 
         // directional influence
         Vector2 trueMovement = new Vector3(Mathf.Cos(currentAngle * Mathf.Deg2Rad), Mathf.Sin(currentAngle * Mathf.Deg2Rad)) * real_speed;       // trig
-        rb.MovePosition(rb.position + trueMovement);
+
+        // Stop moving and rotating when monster enters the "eating" process
+        if (EatBox.canEat == true) rb.velocity = Vector2.zero;
+        else rb.MovePosition(rb.position + trueMovement);
     }
 
     // * Standard Bite Attack * //

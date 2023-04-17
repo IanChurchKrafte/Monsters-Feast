@@ -5,6 +5,7 @@ using Animal;
 
 public class AttackHitbox : MonoBehaviour
 {
+    public GameObject animal;
     public static int damage = MonsterBehavior.attackDMG;       // from default bite
     public static int dmg_scale;                                // from lunge attack
     public static bool attacking;
@@ -15,33 +16,49 @@ public class AttackHitbox : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Animal"))
         {   
-             // * Monster bites Deergoose (only when it's ALIVE) * //
-            if (other.gameObject.GetComponent<DeerGoose>().isDead == false)
+             // * Monster makes contact with DeerGoose * //
+            if (other.gameObject.GetComponent<DeerGoose>())
             {
-                if (lunging) other.gameObject.GetComponent<DeerGoose>().animalHealth -= dmg_scale;      // lunge is active
-                else other.gameObject.GetComponent<DeerGoose>().animalHealth -= damage;                 // else, do standard attack only
-
-                // * Check if Deergoose dies after next attack * //
-                if (other.gameObject.GetComponent<DeerGoose>().animalHealth <= 0)
+                // * ONLY bite DeerGoose when it is ALIVE * //
+                if (other.gameObject.GetComponent<DeerGoose>().isDead == false)
                 {
-                    other.gameObject.GetComponent<DeerGoose>().isDead = true;
-                    MonsterBehavior.eatBox.SetActive(true);
-                    EatBox.Eat();
-                }
-            }
+                    if (lunging) other.gameObject.GetComponent<DeerGoose>().animalHealth -= dmg_scale;      // lunge is active
+                    else other.gameObject.GetComponent<DeerGoose>().animalHealth -= damage;                 // else, do standard attack only
 
-            // * Monster bites ChameleToad * //
-            if (other.gameObject.GetComponent<ChameleToad>())
-            {
-                if (other.gameObject.GetComponent<ChameleToad>().animalHealth <= 0)
-                {
-                    other.gameObject.GetComponent<ChameleToad>().isDead = true;
+                    // * Check if DeerGoose dies after next attack * //
+                    if (other.gameObject.GetComponent<DeerGoose>().animalHealth <= 0)
+                    {
+                        other.gameObject.GetComponent<DeerGoose>().setDead();
+                        Debug.Log("Deergoose is dead");
+                    }
                 }
                 else
                 {
-                    other.gameObject.GetComponent<ChameleToad>().animalHealth -= damage;
+                    MonsterBehavior.eatBox.SetActive(true);
                 }
             }
+            // * Monster makes contact with ChameleToad * //
+            else if (other.gameObject.GetComponent<ChameleToad>())
+            {
+                // * ONLY bite ChameleToad when it is ALIVE * //
+                if (other.gameObject.GetComponent<ChameleToad>().isDead == false)
+                {
+                    if (lunging) other.gameObject.GetComponent<ChameleToad>().animalHealth -= dmg_scale;      // lunge is active
+                    else other.gameObject.GetComponent<ChameleToad>().animalHealth -= damage;                 // else, do standard attack only
+
+                    // * Check if ChameleToad dies after next attack * //
+                    if (other.gameObject.GetComponent<ChameleToad>().animalHealth <= 0)
+                    {
+                        other.gameObject.GetComponent<ChameleToad>().setDead();
+                        Debug.Log("ChameleToad is dead");
+                    }
+                }
+                else
+                {
+                    MonsterBehavior.eatBox.SetActive(true);
+                }
+            }
+            // * Waiting on other animals * //
         }
     }
 }
