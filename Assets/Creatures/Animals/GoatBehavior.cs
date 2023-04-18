@@ -7,7 +7,6 @@ public class GoatBehavior : GenericAnimal
 {   
     
     private Rigidbody2D goat;
-    public float awareDistance = 5.0f, perceptionDistance = 50.0f;
     internal Transform thisTransform;
     public float moveSpeed = 1.25f;
     public float fleeSpeed = 0.5f;
@@ -22,7 +21,18 @@ public class GoatBehavior : GenericAnimal
     void Start()
     {
         goat = GetComponent<Rigidbody2D>();
-        SetAnimalData("Goat", 100, 0.9f, moveSpeed, 1.8f, 0.05f);
+
+         /*
+        Animal type 
+        Health 
+        awareness level
+        run speed 
+        flee speed multiplyer
+        calorie %  
+        */
+
+
+        SetAnimalData("Goat", 100, 0.9f, moveSpeed, fleeSpeed, 0.05f);
         thisTransform = this.transform;
         decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
         ChooseMoveDirection();
@@ -34,13 +44,8 @@ public class GoatBehavior : GenericAnimal
         currentMoveDirection = Mathf.FloorToInt(Random.Range(0, moveDirections.Length));
     }
 
-    void MonsterCheck(float adist, float pdist) 
-    {
-        AwarenessCheck(adist);
-        PerceptionCheck(pdist);
-    }
     
-
+    // apart of the fleeing function
     private void FixedUpdate()
     {
         if(player)
@@ -54,16 +59,7 @@ public class GoatBehavior : GenericAnimal
        
         if (!isDead)
         {
-        // move    
-        thisTransform.position += moveDirections[currentMoveDirection] * Time.deltaTime * moveSpeed;
-        if (decisionTimeCount > 0) decisionTimeCount -= Time.deltaTime;
-        else
-        {
-            decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
-            ChooseMoveDirection();
-        }
-        
-        //flee
+        //flee function, currently moves faster than it does now 
         if (player)
         {
             Vector3 direction = (transform.position - player.position).normalized;
@@ -72,11 +68,21 @@ public class GoatBehavior : GenericAnimal
             moveDirection = direction; 
 
         }
-
-        MonsterCheck(awareDistance, perceptionDistance);
+        else
+        {
+        // move function
+            thisTransform.position += moveDirections[currentMoveDirection] * Time.deltaTime * moveSpeed;
+            if (decisionTimeCount > 0) decisionTimeCount -= Time.deltaTime;
+            else
+            {
+                decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
+                ChooseMoveDirection();
+            } 
+        }
         }
 
-        else{
+        else
+        {
 
             moveSpeed = 0;
             isDead = true;
