@@ -25,13 +25,14 @@ public class MonsterBehavior : MonoBehaviour
     // * Stealth * //
     public static bool stealth_active = false;
     
-    // * Pounce * //
+    // * Stalk * //
     public static bool pounce_active = false;
     public float maxTimeToPounce = 2.5f;
-    public float pounceTimer;               // time limit for pounce
+    public float stalkTimer;               // time limit for pounce
     
     // * Lunge * //
     public float lungeTimer;
+    public bool canStalk = true;
 
     public bool collided;
     public Vector3 goalPosition;
@@ -68,12 +69,18 @@ public class MonsterBehavior : MonoBehaviour
                 float targetAngle = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg + 90;
                 Quaternion toRotate = Quaternion.AngleAxis(targetAngle, Vector3.forward);
                 gameObject.transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotate, rotationSpeed * Time.deltaTime);
+                GetComponent<Animator>().SetBool("Walking", true);
             }
-            else rb.velocity = Vector2.zero;
+            else
+            {
+                rb.velocity = Vector2.zero;
+                GetComponent<Animator>().SetBool("Walking", false);
+            }
         }
         else
         {
             real_speed = 0;
+            GetComponent<Animator>().SetBool("Walking", false);
         }
 
         // * Monster sprints  * //
@@ -83,7 +90,7 @@ public class MonsterBehavior : MonoBehaviour
         }
 
         // * Bite - only works if stealth is NOT active * //
-        if ((Input.GetMouseButtonDown(0) || Input.GetKeyDown("joystick button 0")) && !stealth_active)
+        if ((Input.GetMouseButtonDown(0) || Input.GetKeyDown("joystick button 0") || Input.GetAxis("Attack") > 0) && !stealth_active)
         {
             Bite();
         }
@@ -101,8 +108,9 @@ public class MonsterBehavior : MonoBehaviour
         }
 
         // * Lunging functionality * //
-        if (AttackHitbox.lunging)
+        if (AttackHitbox.lunging && (Input.GetMouseButton(0) || Input.GetAxis("Attack") > 0))
         {
+            stalkTimer = 0;
             lungeTimer -= Time.deltaTime;
             if (lungeTimer <= 0 || collided)
             {
@@ -112,35 +120,53 @@ public class MonsterBehavior : MonoBehaviour
                 attackArea.SetActive(AttackHitbox.lunging);
                 lungeTimer = 0;
             }
-
+            real_speed *= acceleration * 1.25f;
+        }
+        else if(!(Input.GetMouseButton(0) || Input.GetAxis("Attack") > 0))
+        {
+            //Debug.Log("lunge is over");
+            // Debug.Log("lunge lasted for " + lungeTimer + " seconds");
+            AttackHitbox.lunging = false;
+            attackArea.SetActive(AttackHitbox.lunging);
+            lungeTimer = 0;
         }
 
         // * Monster activates stealth * //
-        if (((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown("joystick button 6")) || Input.GetAxis("Stalk") > 0) && !stealth_active)
+        if (((Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown("joystick button 6")) || Input.GetAxis("Stalk") > 0))
         {
             stealth_active = true;
         }
+        else
+        {
+            stealth_active = false;
+        }
 
         // * Decrease Monster's speed if stealth is active * //
-        if ((Input.GetKey(KeyCode.LeftControl) || Input.GetAxis("Stalk") > 0) && stealth_active)
+        if (!AttackHitbox.lunging && (Input.GetKey(KeyCode.LeftControl) || Input.GetMouseButton(1) || Input.GetAxis("Stalk") > 0) && stealth_active)
         {
-            real_speed /= 4.0f;
-            // * Pounce is only active under stealth * //
-            if ((Input.GetMouseButtonDown(0) || Input.GetAxis("Attack") > 0)) pounce_active = true;
+            if (!(Input.GetMouseButton(0) || Input.GetAxis("Attack") > 0))
+                real_speed /= 4.0f;
+            // * Stalk is only active under stealth * //
+            //if ((Input.GetMouseButtonDown(0) || Input.GetAxis("Attack") > 0)) pounce_active = true;
 
-            if (pounce_active)
-            {
-                Pounce();
-            }
-            else
-            {
-                pounce_active = false;
-            }
+
+            if (canStalk)
+                Stalk();
+
+            //else
+            //{
+            //    pounce_active = false;
+            //}
+        }
+        else if (!AttackHitbox.lunging)
+        {
+            canStalk = true;
         }
         float currentAngle = transform.rotation.eulerAngles.z - 90;
 
         // directional influence
         Vector2 trueMovement = new Vector3(Mathf.Cos(currentAngle * Mathf.Deg2Rad), Mathf.Sin(currentAngle * Mathf.Deg2Rad)) * real_speed;       // trig
+        GetComponent<Animator>().SetFloat("WalkSpeed", real_speed);
 
         // Stop moving and rotating when monster enters the "eating" process
         if (EatBox.canEat == true) rb.velocity = Vector2.zero;
@@ -154,39 +180,52 @@ public class MonsterBehavior : MonoBehaviour
         attackArea.SetActive(AttackHitbox.attacking);
     }
 
-    // * Monster enters Pounce state * //
-    private void Pounce()
+    // * Monster enters Stalk state * //
+    private void Stalk()
     {
-        real_speed = 0;
-        pounceTimer += Time.deltaTime;
+        //real_speed = 0;
         // * If pounce is held AND timer exceeds limit * //
-        if (Input.GetMouseButton(0) && pounceTimer >= maxTimeToPounce)
-        {   
+        Debug.Log("Stalk: " + (Input.GetAxis("Stalk") > 0) + ", Attack: " + (Input.GetAxis("Attack") > 0));
+        if(stalkTimer > 0 && (Input.GetMouseButton(1) || Input.GetAxis("Stalk") > 0) && (Input.GetMouseButton(0) || Input.GetAxis("Attack") > 0))
+        {
+            Debug.Log("Starting lunge");
+
+            lungeTimer = stalkTimer;           
+            stalkTimer = 0;                        // reset pounce timer
+
+            pounce_active = false;
+            stealth_active = false;
+            canStalk = false;
+            Lunge();
+        }
+        else if ((Input.GetMouseButton(1) || Input.GetAxis("Stalk") > 0) && stalkTimer >= maxTimeToPounce)
+        {    
             AttackHitbox.dmg_scale = 175;           // max out Monster's damage
             lungeTimer = maxTimeToPounce;           // set lunge timer to max time
-            pounceTimer = 0;                        // reset pounce timer
+            //stalkTimer = 0;                        // reset pounce timer
 
             pounce_active = false;
             stealth_active = false;
 
-            Lunge();
+            //Lunge();
         }
         else
         {
-            AttackHitbox.dmg_scale = (int)(attackDMG + (pounceTimer) * 62);
-            if (Input.GetMouseButtonUp(0))
+            stalkTimer += Time.deltaTime; 
+            AttackHitbox.dmg_scale = (int)(attackDMG + (stalkTimer) * 62);
+            if (!(Input.GetMouseButton(1) || Input.GetAxis("Stalk") > 0))
             {
                 Debug.Log("release");
-                lungeTimer = pounceTimer;           // lunge timer is set depending on how long Monster stays in pounce
-                pounceTimer = 0;                    // reset pounce timer
+                //lungeTimer = stalkTimer;           // lunge timer is set depending on how long Monster stays in pounce
+                stalkTimer = 0;                    // reset pounce timer
                 pounce_active = false;
                 stealth_active = false;
-                Lunge();
+                //Lunge();
             }
         }
     }
 
-    // * Lunge Attack (only from Pounce) * //
+    // * Lunge Attack (only from Stalk) * //
     private void Lunge()
     {
         AttackHitbox.lunging = true;
