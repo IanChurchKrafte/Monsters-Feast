@@ -7,6 +7,7 @@ public class GoatBehavior : GenericAnimal
 {   
     
     private Rigidbody2D goat;
+    public float awareDistance = 5.0f, perceptionDistance = 50.0f;
     internal Transform thisTransform;
     public float moveSpeed = 1.25f;
     public float fleeSpeed = 0.5f;
@@ -45,7 +46,7 @@ public class GoatBehavior : GenericAnimal
     }
 
     
-    // apart of the fleeing function
+    // apart of the fleeing function 
     private void FixedUpdate()
     {
         if(player)
@@ -59,6 +60,14 @@ public class GoatBehavior : GenericAnimal
        
         if (!isDead)
         {
+            thisTransform.position += moveDirections[currentMoveDirection] * Time.deltaTime * moveSpeed;
+            if (decisionTimeCount > 0) decisionTimeCount -= Time.deltaTime;
+            else
+            {
+                decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
+                ChooseMoveDirection();
+            } 
+        
         //flee function, currently moves faster than it does now 
         if (player)
         {
@@ -68,19 +77,7 @@ public class GoatBehavior : GenericAnimal
             moveDirection = direction; 
 
         }
-        else
-        {
-        // move function
-            thisTransform.position += moveDirections[currentMoveDirection] * Time.deltaTime * moveSpeed;
-            if (decisionTimeCount > 0) decisionTimeCount -= Time.deltaTime;
-            else
-            {
-                decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
-                ChooseMoveDirection();
-            } 
         }
-        }
-
         else
         {
 
