@@ -15,6 +15,7 @@ public class GoatBehavior : GenericAnimal
     internal float decisionTimeCount = 0;
     internal Vector3[] moveDirections = new Vector3[] { Vector3.right, Vector3.left, Vector3.up, Vector3.down, Vector3.zero, Vector3.zero };
     internal int currentMoveDirection;
+    private GameObject player;
  
     void Start()
     {
@@ -23,6 +24,7 @@ public class GoatBehavior : GenericAnimal
         thisTransform = this.transform;
         decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
         ChooseMoveDirection();
+        player = GameObject.Find("Monster");
 
     }
     void ChooseMoveDirection()
@@ -36,6 +38,7 @@ public class GoatBehavior : GenericAnimal
         PerceptionCheck(pdist);
     }
     
+
     void Update()
     {   
        
@@ -53,11 +56,12 @@ public class GoatBehavior : GenericAnimal
         else{
 
             moveSpeed = 0;
+            isDead = true;
         
         }
     }
    
 
-}
+    }
     
     
