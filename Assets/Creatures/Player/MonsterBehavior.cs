@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MonsterBehavior : MonoBehaviour
 {
-    public int health;                           // monster health
+    public int maxHealth;                           // monster health
     public float stamina;                        // monster stamina
 
     public float speed = 0.025f;                 // base speed
@@ -27,6 +27,8 @@ public class MonsterBehavior : MonoBehaviour
     // public float pounce_offset = 5.0f;
     public Vector3 goalPosition;
     Rigidbody2D rb;
+
+    public int currentHealth;
     
     // POUNCE TIMER: 6 second limit
 
@@ -34,6 +36,7 @@ public class MonsterBehavior : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        currentHealth = maxHealth;
     }
 
     // Update is called once per frame
@@ -164,5 +167,15 @@ public class MonsterBehavior : MonoBehaviour
     private void OnCollisionExit2D(Collision2D collision)
     {
         collided = false;
+    }
+
+    public void TakeDamage(int damage){
+        int temp = currentHealth - damage;
+        if(temp <= 0){
+            //dead
+            currentHealth = 0;
+        }
+        else
+            currentHealth = temp;
     }
 }
