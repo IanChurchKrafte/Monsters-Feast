@@ -10,7 +10,7 @@ public struct AnimalData{
     public string animalType;
     public int animalHealth;
     public int awarenessLevel;
-    public int runSpeed;
+    //public int speed;
     public Vector2 position;
     public Vector2 rotation;
     public int isDead;
@@ -22,10 +22,12 @@ namespace Animal{
         public string animalType = "Generic";
         public int animalHealth = 150;
         public float awarenessLevel = 0.5f;
-        public float runSpeed = 1.0f;
+        public float speed = 1.0f;
         public bool isDead = false;
         public float fleeSpeedMultiplyer = 1.5f;
         public float calories = 0.05f;
+
+        public bool startFlee = false;
 
         public AnimalData animalData;
 
@@ -35,7 +37,7 @@ namespace Animal{
         //     animalType = type;
         //     animalHealth = health;
         //     awarenessLevel = awareness;
-        //     runSpeed = speed;
+        //     speed = speed;
         //     position = pos;
         //     rotation = rot;
         // }
@@ -45,16 +47,18 @@ namespace Animal{
             animalType = type;
             animalHealth = health;
             awarenessLevel = awareness;
-            runSpeed = speed;
+            speed = speed;
             fleeSpeedMultiplyer = fleeSpeed;
             calories = cal;
         }
 
         public void AnimalFlee(Vector2 direction){ //make the animal run in a given direction
             Rigidbody2D animal = GetComponent<Rigidbody2D>();
-            animal.AddForce(direction * (runSpeed * fleeSpeedMultiplyer), ForceMode2D.Impulse);
+            animal.AddForce(direction * (speed * fleeSpeedMultiplyer), ForceMode2D.Impulse);
             Debug.Log("Animal trying to flee");
         }
+
+        
 
         //AwarenessCheck is for the inner circle of the monster's, if the player is inside of that circle the animal will know it is there
         //can be changed to have a chance to be found
@@ -67,8 +71,9 @@ namespace Animal{
                 GameObject hitObject = hit.collider.gameObject;
                 if(hitObject.CompareTag("Player")){
                     //player is within the inner circle of the animal, animal will flee
-                    Vector2 normal = hit.normal;
-                    AnimalFlee(normal);
+                    // Vector2 normal = hit.normal;
+                    // AnimalFlee(normal);
+                    //startFlee = true;
                     return true;
                 }
             }
@@ -104,8 +109,9 @@ namespace Animal{
                     GameObject hitObject = hit.collider.gameObject;
                     if(hitObject.CompareTag("Player") && hit.distance <= distance){
                         //player is within the inner circle of the animal, animal will flee
-                        Vector2 normal = hit.normal;
-                        AnimalFlee(normal);
+                        // Vector2 normal = hit.normal;
+                        // AnimalFlee(normal);
+                        //startFlee = true;
                         return true;
                     }
                 }
@@ -132,7 +138,7 @@ namespace Animal{
         // Start is called before the first frame update
         void Start()
         {
-            
+            //player = GameObject.Find("Monster");
         }
 
         // Update is called once per frame
@@ -142,12 +148,12 @@ namespace Animal{
                 gameObject.tag = "deadAnimal";
             }
             //placeholder variables
-            Vector2 position = new Vector2(0,0);
-            Vector2 rotation = new Vector2(0,0);
-            float distance = 5.0f;
+            // Vector2 position = new Vector2(0,0);
+            // Vector2 rotation = new Vector2(0,0);
+            // float distance = 5.0f;
             //AwarenessCheck(distance);
             //PerceptionCheck(distance);
-        }
+        } 
 
 
     }
