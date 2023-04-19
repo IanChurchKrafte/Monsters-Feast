@@ -46,9 +46,16 @@ public class GoatBehavior : GenericAnimal
     }
 
     
-<<<<<<< Updated upstream
     // apart of the fleeing function 
-=======
+    private void FixedUpdate()
+    {
+        if(player)
+        {
+            goat.velocity = new Vector2(moveDirection.x, moveDirection.y) * moveSpeed * fleeSpeedMultiplyer; 
+            
+        }   
+    }
+
     private void OnCollisionEnter2D(Collision2D collision)
      {
          if (collision.gameObject.CompareTag("Player"))
@@ -60,50 +67,34 @@ public class GoatBehavior : GenericAnimal
      }
 
 
->>>>>>> Stashed changes
-    private void FixedUpdate()
-    {
-        if(player)
-        {
-            goat.velocity = new Vector2(moveDirection.x, moveDirection.y) * moveSpeed * fleeSpeedMultiplyer; 
-            
-        }   
-    }
-
     void Update()
     {   
        
         if (!isDead)
         {
-<<<<<<< Updated upstream
-=======
-        // move    
->>>>>>> Stashed changes
             thisTransform.position += moveDirections[currentMoveDirection] * Time.deltaTime * moveSpeed;
             if (decisionTimeCount > 0) decisionTimeCount -= Time.deltaTime;
             else
             {
                 decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
-                ChooseMoveDirection();
-<<<<<<< Updated upstream
+                ChooseMoveDirection();   
             } 
-=======
-            }
->>>>>>> Stashed changes
+
+            Vector3 moveDirection = gameObject.transform.position - transform.position; 
+            if (moveDirection != Vector3.zero) 
+            {
+                float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
+                transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+                }
         
         //flee function, currently moves faster than it does now 
         if (player)
-        {
-            Vector3 direction = (transform.position - player.position).normalized;
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            goat.rotation = angle;
-            moveDirection = direction; 
-            Debug.Log("Animal is fleeing");
-        }
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
+            {
+                Vector3 direction = (transform.position - player.position).normalized;
+                float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                goat.rotation = angle;
+                moveDirection = direction; 
+            }
         }
         else
         {
