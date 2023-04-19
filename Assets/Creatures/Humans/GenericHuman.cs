@@ -35,7 +35,7 @@ public class GenericHuman : MonoBehaviour
     public bool isDead = false;
 
     //speeds
-    public float walkSpeed = 2.0f, runSpeed = 3.5f, fleeSpeed = 4.5f;
+    public float walkSpeed = 2.0f, runSpeed = 4.5f, fleeSpeed = 4.5f;
 
     public float monsterVisibleRange = 25.0f, visibleAngle = 120.0f, ballistaVisibleRange = 30.0f;
 
@@ -142,15 +142,16 @@ public class GenericHuman : MonoBehaviour
             //move in that direction
             float moveTime = Random.Range(2f, 5f);
             float elapsed = 0f;
+            human.velocity = (-direction) * walkSpeed;
             while(elapsed < moveTime){
-                transform.Translate(Vector3.up * Time.deltaTime * walkSpeed);// * 0.01f);
+                // transform.Translate(Vector3.up * Time.deltaTime * walkSpeed);// * 0.01f);
                 // Debug.Log("moving");
                 //update elapsed time
                 elapsed += Time.deltaTime;
 
                 yield return null;
             }
-
+            human.velocity = Vector2.zero;
             //stop moving and wait in place for a bit
             float waitTime = Random.Range(3f, 5f);
             elapsed = 0f;
@@ -185,6 +186,7 @@ public class GenericHuman : MonoBehaviour
                 Vector2 direction = player.transform.position - transform.position;
                 //check if player is in attack range
                 if(direction.magnitude < attackRange && !isAttacking){
+                    human.velocity = Vector2.zero;
                     isAttacking = true;
                     //Debug.Log("trying to attack");
                     direction = player.transform.position - transform.position;
@@ -199,7 +201,8 @@ public class GenericHuman : MonoBehaviour
                     if(direction.magnitude > 1.9f){
                         Vector2 moveDir = (Vector2)player.transform.position - (Vector2)transform.position;
                         //move towards the player
-                        transform.Translate(moveDir.normalized * runSpeed * Time.deltaTime);
+                        // transform.Translate(moveDir.normalized * runSpeed * Time.deltaTime);
+                        human.velocity = moveDir.normalized * runSpeed;
                     }
                     
                     float distance = direction.magnitude;
@@ -234,6 +237,8 @@ public class GenericHuman : MonoBehaviour
         //get distance to base
         float distanceToBase = (baseLocation - (Vector2)transform.position).magnitude;
 
+        human.velocity = (-direction) * fleeSpeed * 0.2f;
+        // Debug.Log(fleeSpeed);
         //move towards the base
         while(distanceToBase > 5.0f){
             direction = (Vector2)transform.position - baseLocation;
@@ -241,10 +246,11 @@ public class GenericHuman : MonoBehaviour
             RotateTowardsDirection(direction);
 
             //Debug.Log("Human fleeing to base, distance: "+distanceToBase);
-            transform.Translate(Vector3.up * Time.deltaTime * fleeSpeed);
+            // transform.Translate(Vector3.up * Time.deltaTime * fleeSpeed);
 
             yield return null;
         }
+        human.velocity = Vector2.zero;
         isFleeing = false;
         moveTime = false;
     }
@@ -370,7 +376,7 @@ public class GenericHuman : MonoBehaviour
             if(!isChasing && !isFleeing && !isHostile){
                 //normal move around
                 if(!moveTime){ 
-                    Debug.Log("move Check");
+                    // Debug.Log("move Check");
                     StartCoroutine(MoveAround());
                     moveTime = true;
                 }
