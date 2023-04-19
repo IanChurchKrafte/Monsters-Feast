@@ -14,9 +14,9 @@ GameObject:
   - component: {fileID: 524235686179079214}
   - component: {fileID: 524235686179079201}
   - component: {fileID: 524235686179079210}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Deergoose
-  m_TagString: Untagged
+  m_TagString: Animal
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -123,15 +123,19 @@ MonoBehaviour:
   animalType: Generic
   animalHealth: 150
   awarenessLevel: 0.5
-  runSpeed: 1
+  speed: 1
   isDead: 0
   fleeSpeedMultiplyer: 1.5
-  calories: 0.05
+  calories: 0.18
+  consumed: 0
+  startFlee: 0
   awareDistance: 5
   perceptionDistance: 50
   corpseDistance: 30
-  idleDelay: 4
-  walkTime: 5
+  walkSpeed: 1.25
+  sprintSpeed: 1.25
+  fleeDistance: 20
+  isFleeing: 0
 --- !u!50 &524235686179079201
 Rigidbody2D:
   serializedVersion: 4
@@ -140,18 +144,18 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 524235686179079200}
-  m_BodyType: 1
+  m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 100
   m_LinearDrag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 100000
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!70 &524235686179079210
 CapsuleCollider2D:

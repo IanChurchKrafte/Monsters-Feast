@@ -8,6 +8,7 @@ public class MonsterBehavior : MonoBehaviour
     public int maxHealth = 100; 
     public int currentHealth;
     public float stamina;
+    public float sustenance = 0;
     
     // * Movement Parameters * //
     public float speed = 0.025f;
@@ -33,6 +34,7 @@ public class MonsterBehavior : MonoBehaviour
     // * Lunge * //
     public float lungeTimer;
     public bool canStalk = true;
+    bool bitePressed = false;
 
     public bool collided;
     public Vector3 goalPosition;
@@ -46,7 +48,7 @@ public class MonsterBehavior : MonoBehaviour
         eatBox = transform.GetChild(1).gameObject;
         currentHealth = maxHealth;
         attackArea.SetActive(false);
-        eatBox.SetActive(false);
+        //eatBox.SetActive(false);
     }
 
     // Update is called once per frame
@@ -64,7 +66,7 @@ public class MonsterBehavior : MonoBehaviour
         if (velocity != Vector2.zero)
         {
             // only rotate if the monster is not in eating mode
-            if (EatBox.canEat == false)
+            if (!(EatBox.canEat && Input.GetKey(KeyCode.JoystickButton2)))
             {
                 float targetAngle = Mathf.Atan2(velocity.y, velocity.x) * Mathf.Rad2Deg + 90;
                 Quaternion toRotate = Quaternion.AngleAxis(targetAngle, Vector3.forward);
@@ -89,10 +91,19 @@ public class MonsterBehavior : MonoBehaviour
             real_speed *= acceleration;
         }
 
+        if (bitePressed)
+        {
+            AttackHitbox.attacking = false;
+            attackArea.SetActive(AttackHitbox.attacking);
+        }
         // * Bite - only works if stealth is NOT active * //
-        if ((Input.GetMouseButtonDown(0) || Input.GetKeyDown("joystick button 0") || Input.GetAxis("Attack") > 0) && !stealth_active)
+        if (!bitePressed && (Input.GetMouseButtonDown(0) || Input.GetAxis("Attack") > 0) && !stealth_active)
         {
             Bite();
+        }
+        else if(!(Input.GetMouseButton(0) || Input.GetAxis("Attack") > 0))
+        {
+            bitePressed = false;
         }
 
         // * Bite functionality * //
@@ -169,13 +180,14 @@ public class MonsterBehavior : MonoBehaviour
         GetComponent<Animator>().SetFloat("WalkSpeed", real_speed);
 
         // Stop moving and rotating when monster enters the "eating" process
-        if (EatBox.canEat == true) rb.velocity = Vector2.zero;
+        if (EatBox.canEat == true && Input.GetKey(KeyCode.JoystickButton2)) rb.velocity = Vector2.zero;
         else rb.MovePosition(rb.position + trueMovement);
     }
 
     // * Standard Bite Attack * //
     private void Bite()
     {
+        bitePressed = true;
         AttackHitbox.attacking = true;
         attackArea.SetActive(AttackHitbox.attacking);
     }

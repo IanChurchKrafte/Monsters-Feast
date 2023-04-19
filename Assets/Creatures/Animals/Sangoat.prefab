@@ -13,9 +13,9 @@ GameObject:
   - component: {fileID: 2856538816822898975}
   - component: {fileID: 2856538816822898974}
   - component: {fileID: 2856538816822898973}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sangoat
-  m_TagString: Untagged
+  m_TagString: Animal
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -99,6 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eef71212f3dc4b944bd3fcb92bbd5dc1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  awake: 0
   animalType: Generic
   animalHealth: 150
   awarenessLevel: 0.5
@@ -106,6 +107,7 @@ MonoBehaviour:
   isDead: 0
   fleeSpeedMultiplyer: 1.5
   calories: 0.05
+  consumed: 0
   startFlee: 0
   awareDistance: 5
   perceptionDistance: 50

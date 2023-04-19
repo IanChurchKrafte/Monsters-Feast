@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Monster
   - deadAnimal
+  - Animal
   layers:
   - Default
   - TransparentFX
@@ -14,9 +15,9 @@ TagManager:
   - Water
   - UI
   - Monster
-  - 
-  - 
-  - 
+  - MonsterBox
+  - Animal
+  - DeadAnimal
   - 
   - 
   - 

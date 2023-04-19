@@ -1,3 +1,4 @@
+using Animal;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -13,35 +14,46 @@ public class EatBox : MonoBehaviour
     // * Time it takes for Monster to eat animal depends on calorie count * //
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // * DeerGoose * //
-        if (other.gameObject.GetComponent<DeerGoose>())
+        if (other.gameObject.tag != "deadAnimal")
+            return;
+        if (other.gameObject.GetComponent<GenericAnimal>())
         {
             animal = other.gameObject;
-            timeToEat = other.gameObject.GetComponent<DeerGoose>().calories * 15;
-        }
-        // * ChameleToad * //
-        else if (other.gameObject.GetComponent<ChameleToad>())
-        {
-            animal = other.gameObject;
-            timeToEat = other.gameObject.GetComponent<ChameleToad>().calories * 15;
+            //timeToEat = other.gameObject.GetComponent<GenericAnimal>().calories * 100 / 15;
         }
         canEat = true;
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.gameObject == animal)
+        {
+            canEat = false;
+            //MonsterBehavior.eatBox.SetActive(false);
+        }
     }
 
     void Update()
     {
-        if (canEat)
+        Debug.Log("Button pressed: " + Input.GetKey(KeyCode.JoystickButton2));
+        if (canEat && Input.GetKey(KeyCode.JoystickButton2))
         {
             // * Monster should remain stationary while eating another animal * //
             Debug.Log("Munch Munch Munch Chew Chew Chew");
-            eatingTimer += Time.deltaTime;
-            if (eatingTimer >= timeToEat)
+            //eatingTimer += Time.deltaTime;
+            if (animal.GetComponent<GenericAnimal>().consumed + Time.deltaTime / 15 >= animal.GetComponent<GenericAnimal>().calories)
             {
-                MonsterBehavior.eatBox.SetActive(false);
-                eatingTimer = 0;
+                transform.parent.gameObject.GetComponent<MonsterBehavior>().sustenance += animal.GetComponent<GenericAnimal>().calories - animal.GetComponent<GenericAnimal>().consumed;
+                //MonsterBehavior.eatBox.SetActive(false);
+                //eatingTimer = 0;
                 Destroy(animal);
                 Debug.Log("Swallow");
                 canEat = false;
+            }
+            else
+            {
+                float amount = Time.deltaTime / 15;
+                animal.GetComponent<GenericAnimal>().consumed += amount;
+                transform.parent.gameObject.GetComponent<MonsterBehavior>().sustenance += amount;
             }
         }
 

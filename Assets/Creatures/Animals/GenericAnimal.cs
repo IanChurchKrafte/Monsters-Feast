@@ -19,6 +19,7 @@ public struct AnimalData{
 namespace Animal{
     public class GenericAnimal : MonoBehaviour
     {
+        public bool awake;
         public string animalType = "Generic";
         public int animalHealth = 150;
         public float awarenessLevel = 0.5f;
@@ -26,6 +27,7 @@ namespace Animal{
         public bool isDead = false;
         public float fleeSpeedMultiplyer = 1.5f;
         public float calories = 0.05f;
+        public float consumed = 0;
 
         public bool startFlee = false;
 
@@ -119,7 +121,7 @@ namespace Animal{
             return false;
         }
 
-        void AnimalDamage(int dmg){
+        public void AnimalDamage(int dmg){
             if(animalData.animalHealth - dmg <= 0){
                 //dead
                 animalHealth = 0;
@@ -134,6 +136,12 @@ namespace Animal{
 
         void setDead(){
             isDead = true;
+            gameObject.tag = "deadAnimal";
+            gameObject.layer = LayerMask.NameToLayer("DeadAnimal");
+            GetComponent<SpriteRenderer>().color = new Color32(121, 29, 29, 255);
+            GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezePosition;
+            Debug.Log(animalType + " has been killed.");
+            transform.position += new Vector3(0, 0, 0.1f);
         }
         // Start is called before the first frame update
         void Start()
@@ -153,8 +161,17 @@ namespace Animal{
             // float distance = 5.0f;
             //AwarenessCheck(distance);
             //PerceptionCheck(distance);
-        } 
+        }
 
+        private void OnBecameVisible()
+        {
+            if (!awake)
+            {
+                awake = true;
+                Vector2 point = Random.insideUnitCircle.normalized;
+                GetComponent<Rigidbody2D>().rotation = Mathf.Atan2(point.y, point.x) * Mathf.Rad2Deg;
+            }
+        }
 
     }
 }

@@ -26,7 +26,7 @@ public class GoatBehavior : GenericAnimal
         thisTransform = this.transform;
         decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
         ChooseMoveDirection();
-        player = GameObject.Find("Player").transform;
+        player = GameObject.Find("Monster").transform;
 
     }
     void ChooseMoveDirection()
