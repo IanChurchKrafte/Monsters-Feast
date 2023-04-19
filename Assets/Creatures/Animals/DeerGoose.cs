@@ -116,8 +116,8 @@ public class DeerGoose : GenericAnimal
         {
             yield return null;
         }
-        Collider2D levelCollider = GameObject.Find("Level 1 Bounds").GetComponent<Collider2D>();
-        Bounds levelBounds = levelCollider.bounds;
+        //Collider2D levelCollider = GameObject.Find("Level 1 Bounds").GetComponent<Collider2D>();
+        //Bounds levelBounds = levelCollider.bounds;
         deerGoose.velocity = Vector2.zero;
         while(true && !isDead){
             // if(isFleeing) yield return null;
@@ -126,7 +126,7 @@ public class DeerGoose : GenericAnimal
             Vector2 direction = Random.insideUnitCircle.normalized;
             
             //rotate in that direction
-            RotateTowardsDirection(direction);
+            //RotateTowardsDirection(direction);
 
             //move in that direction
             float moveTime = Random.Range(2f, 5f);

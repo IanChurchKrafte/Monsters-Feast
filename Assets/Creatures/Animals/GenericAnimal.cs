@@ -45,11 +45,11 @@ namespace Animal{
         // }
 
         //setting values for a new animal
-        public void SetAnimalData(string type, int health, float awareness, float speed, float fleeSpeed, float cal){
+        public void SetAnimalData(string type, int health, float awareness, float Speed, float fleeSpeed, float cal){
             animalType = type;
             animalHealth = health;
             awarenessLevel = awareness;
-            speed = speed;
+            speed = Speed;
             fleeSpeedMultiplyer = fleeSpeed;
             calories = cal;
         }

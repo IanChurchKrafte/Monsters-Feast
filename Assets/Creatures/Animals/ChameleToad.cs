@@ -12,15 +12,16 @@ public class ChameleToad : GenericAnimal
     public float jumpDelay = 3.0f;
     public float jumpSpeed = 0.5f;
     private Vector2 jumpTarget;
-    private bool jumping = false;
+    // private bool jumping = false;
     //public float jumpHeight = 10f;
     private float timer = 0.0f, start;
-    public float corpseDistance = 30.0f;
+    public float corpseDistance = 5.0f;
     public bool isFleeing = false;
     
     private GameObject player;
 
     private Rigidbody2D rb;
+    private Animator anim;
 
     IEnumerator move, flee;
 
@@ -36,7 +37,7 @@ public class ChameleToad : GenericAnimal
         if(val)
             alpha = 1.0f;
         else
-            alpha = 0.5f;
+            alpha = 0.35f;
 
         if(!val){
             StartCoroutine(WaitAndChangeAlpha(20.0f));
@@ -60,58 +61,9 @@ public class ChameleToad : GenericAnimal
         spriteRender.material.color = spriteColor;
     }
 
-    //old frog flee
-    // IEnumerator FrogFlee(Vector2 position){ 
-    //     //needs to jump away, but jump away a lot faster and further than when normally walking
-    //     Vector2 fleeDirection = ((Vector2)transform.position - position);
-    //     fleeDirection.Normalize();
-    //     float fleeJumpDistance = 1.5f;
-        
-
-    //     start = timer;
-    //     float elapsed = 0f;
-
-    //     float distanceToCorpse = (position - (Vector2)transform.position).magnitude;
-
-    //     RotateToPoint(jumpTarget);
-
-    //     while(elapsed < 5.0f && distanceToCorpse < 20.0f && isFleeing){
-    //         StopCoroutine(move);
-    //         jumpTarget = (Vector2)transform.position + fleeDirection * fleeJumpDistance * 0.5f;
-
-    //         distanceToCorpse = (position - (Vector2)transform.position).magnitude;
-
-    //         while(Vector2.Distance(transform.position, jumpTarget) > 0.1f){
-    //             float currentDistance = Vector2.Distance(transform.position, jumpTarget);
-
-    //             float step = jumpSpeed * Time.deltaTime * 0.3f;
-    //             transform.position = Vector2.MoveTowards(transform.position, jumpTarget, step);
-
-    //             //something went wrong in the loop and the 2 if statements help to prevent an infinite loop
-    //             //check if distance is somehow getting bigger
-    //             if (Vector2.Distance(transform.position, jumpTarget) >= currentDistance)
-    //                 break;
-
-    //             //check if the frog has been trying to jump to the same target for too long, and break out of the loop if it has
-    //             if (timer - start > jumpDelay * 2)
-    //                 break;
-                
-    //             elapsed += Time.deltaTime;
-
-    //             //wait for the next fram to continue the movement
-    //             yield return null;
-    //         }    
-    //         yield return null;        
-    //     }
-    //     isFleeing = false;
-    //     check = false;
-    //     changeAlpha(true);
-        
-    // }
-
     IEnumerator newFrogFlee(Vector2 position){
         int numJumps = 5;
-        float jumpInterval = 0.2f;
+        float jumpInterval = 0.3f;
         Vector2 fleeDirection = ((Vector2)transform.position - position);
         fleeDirection.Normalize();
 
@@ -125,13 +77,16 @@ public class ChameleToad : GenericAnimal
             start = timer;
 
             RotateToPoint(jumpTarget);
+            GetComponent<Animator>().speed = 1;
 
-            while(Vector2.Distance(transform.position, jumpTarget) > 0.1f){
+            // Debug.Log("set velocity: "+(fleeDirection) * jumpSpeed * 7.5f);
+            rb.velocity = (fleeDirection) * jumpSpeed * 7.5f;
+            while (Vector2.Distance(transform.position, jumpTarget) > 0.1f){
                 float currentDistance = Vector2.Distance(jumpTarget, transform.position);
 
                 float step = jumpSpeed * Time.deltaTime;
-                transform.position = Vector2.MoveTowards(transform.position, jumpTarget, step);
-
+                // transform.position = Vector2.MoveTowards(transform.position, jumpTarget, step);
+                // Debug.Log("in while loop");
                 //something went wrong in the loop and the 2 if statements help to prevent an infinite loop
                 //check if distance is somehow getting bigger
                 if (Vector2.Distance(transform.position, jumpTarget) >= currentDistance)
@@ -143,10 +98,15 @@ public class ChameleToad : GenericAnimal
 
                 yield return null;
             }
-            //Debug.Log("jump complete");
 
+            //Debug.Log("end of while");
+
+            GetComponent<Animator>().speed = 1;
+            //Debug.Log("jump complete");
+            //rb.velocity = Vector2.zero;
             yield return new WaitForSeconds(jumpInterval);
         }
+        rb.velocity = Vector2.zero;
         isFleeing = false;
     }
 
@@ -164,8 +124,12 @@ public class ChameleToad : GenericAnimal
                 Vector2 normal = hit.normal;
                 changeAlpha(false);
                 //AnimalFlee(normal);
-                isFleeing = true;
-                StartCoroutine(newFrogFlee(hit.rigidbody.position));
+                if (!isFleeing)
+                {
+                    isFleeing = true;
+                    StartCoroutine(newFrogFlee(hit.rigidbody.position));
+                }
+                
 
                 hitCheck++;
                 //Debug.Log("Alpha: "+alpha);
@@ -176,51 +140,127 @@ public class ChameleToad : GenericAnimal
         }
     }
 
-    IEnumerator FrogJump(){
+    private IEnumerator FrogJump(){
         if(rb == null){
             Debug.LogError("No Rigidbody2D attached to ChameleoToad");
             yield break;
         }
         //pick new jump target
+        // Debug.Log("position: "+transform.position);
         jumpTarget = RandomJumpTarget();
+        // Debug.Log("im getting into jump");
+        
 
         //reset the start time to compare against the running timer
         start = timer;
         
         //rotate towards that direction
         RotateToPoint(jumpTarget);
-
+        GetComponent<Animator>().speed = 1;
         //calculate jump direction and distance
         Vector2 jumpDirection = (jumpTarget - (Vector2)transform.position).normalized;
         float jumpDistance = Vector2.Distance(jumpTarget, transform.position);
-
+        rb.velocity = (jumpDirection) * jumpSpeed * 5.0f;
         while(Vector2.Distance(transform.position, jumpTarget) > 0.1f){
             float currentDistance = Vector2.Distance(transform.position, jumpTarget);
 
             //transform.position += (Vector3)(jumpDirection * jumpSpeed * Time.deltaTime);
             float step = jumpSpeed * Time.deltaTime;
-            transform.position = Vector2.MoveTowards(transform.position, jumpTarget, step);
+            // transform.position = Vector2.MoveTowards(transform.position, jumpTarget, step);
+            
+            // Debug.Log("in frog jump, Distance: "+currentDistance);
 
             //something went wrong in the loop and the 2 if statements help to prevent an infinite loop
                 //check if distance is somehow getting bigger
-                if (Vector2.Distance(transform.position, jumpTarget) >= currentDistance)
+                if (Vector2.Distance(transform.position, jumpTarget) > currentDistance){
+                    // Debug.Log("breaking at 1st if: distance"+Vector2.Distance(transform.position, jumpTarget));
                     break;
+                }
+                    
 
                 //check if the frog has been trying to jump to the same target for too long, and break out of the loop if it has
-                if (timer - start > jumpDelay * 2)
+                if (timer - start > jumpDelay * 2){
+                    // Debug.Log("breaking at 2nd if");
                     break;
+                }
+                    
 
             //wait for the next fram to continue the movement
             yield return null;
         }
+        GetComponent<Animator>().speed = 1;
+        rb.velocity = Vector2.zero;
     }
 
+    // void NewFrogJump(){
+    //     Debug.Log("im getting into jump");
+    //     if(rb == null){
+    //         Debug.LogError("No Rigidbody2D attached to ChameleoToad");
+    //         //yield break;
+    //         return;
+    //     }
+    //     //pick new jump target
+    //     // Debug.Log("position: "+transform.position);
+    //     jumpTarget = RandomJumpTarget();
+        
+        
+
+    //     //reset the start time to compare against the running timer
+    //     start = timer;
+        
+    //     //rotate towards that direction
+    //     RotateToPoint(jumpTarget);
+
+    //     //calculate jump direction and distance
+    //     Vector2 jumpDirection = (jumpTarget - (Vector2)transform.position).normalized;
+    //     float jumpDistance = Vector2.Distance(jumpTarget, transform.position);
+    //     rb.velocity = (jumpDirection) * jumpSpeed * 5.0f;
+    //     while(Vector2.Distance(transform.position, jumpTarget) > 0.1f){
+    //         float currentDistance = Vector2.Distance(transform.position, jumpTarget);
+
+    //         //transform.position += (Vector3)(jumpDirection * jumpSpeed * Time.deltaTime);
+    //         float step = jumpSpeed * Time.deltaTime;
+    //         // transform.position = Vector2.MoveTowards(transform.position, jumpTarget, step);
+            
+    //         // Debug.Log("in frog jump, Distance: "+currentDistance);
+
+    //         //something went wrong in the loop and the 2 if statements help to prevent an infinite loop
+    //             //check if distance is somehow getting bigger
+    //             if (Vector2.Distance(transform.position, jumpTarget) > currentDistance){
+    //                 Debug.Log("breaking at 1st if: distance"+Vector2.Distance(transform.position, jumpTarget));
+    //                 break;
+    //             }
+                    
+
+    //             //check if the frog has been trying to jump to the same target for too long, and break out of the loop if it has
+    //             if (timer - start > jumpDelay * 2){
+    //                 Debug.Log("breaking at 2nd if");
+    //                 break;
+    //             }
+                    
+
+    //         //wait for the next fram to continue the movement
+    //         // yield return null;
+    //     }
+    //     rb.velocity = Vector2.zero;
+    // }
+
     void FrogTimeCheck(){
-        if(timer - start > jumpDelay && !isFleeing){//if elapsed time is over 2 seconds
-            StartCoroutine(move);
+        if((timer - start > jumpDelay) && !isFleeing){//if elapsed time is over 2 seconds
+            // StopAllCoroutines();
+            // Debug.Log("starting jump");
+            // StartCoroutine(move);
+            StartCoroutine(FrogJump());
+            // NewFrogJump();
+            // Debug.Log("ending jump");
         }
         else if (isFleeing){
-            StopCoroutine(move);
+            StopCoroutine(FrogJump());
+            // StartCoroutine(Frog)
+            // Debug.Log("im starting to flee");
+        }
+        else{
+            // Debug.Log("im landing here");
         } 
     }
 
@@ -243,7 +283,10 @@ public class ChameleToad : GenericAnimal
     }
 
     Vector2 RandomJumpTarget(){
-        jumpTarget = new Vector2(transform.position.x + Random.Range(-3f, 3f), transform.position.y + Random.Range(-3f, 3f));
+        // jumpTarget = Random.insideUnitCircle.normalized * 3.0f;
+        float x = Random.Range(-3.0f, 3.0f);
+        float y = Random.Range(-3.0f, 3.0f);
+        jumpTarget = new Vector2(transform.position.x + x, transform.position.y + y);
         return jumpTarget;
         
     }
@@ -261,13 +304,14 @@ public class ChameleToad : GenericAnimal
         SetAnimalData("ChameleToad", 15, 0.8f, 0.00005f, 1.8f, 0.07f); //setting the animal data for a DeerGoose
         changeAlpha(true);
         rb = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
         // FrogJump();
         //StartCoroutine(FrogJump());
         player = GameObject.Find("Monster");
         move = FrogJump();
     }
 
-    bool check = false;
+    // bool check = false;
     // Update is called once per frame
     void Update()
     {
@@ -282,6 +326,25 @@ public class ChameleToad : GenericAnimal
             
             //for fleeing
             CorpseCheck(corpseDistance * gameObject.transform.localScale.x);
+            /*
+            if(isFleeing){
+                // Debug.Log("here");
+                StartCoroutine(newFrogFlee(player.transform.position));
+                isFleeing = false;
+            }
+            */
         }
+        /*
+        else if (!isDead && isFleeing){
+            
+        }*/
+        else{
+            rb.velocity = Vector2.zero;
+            anim.enabled = false;
+        }
+    }
+    public void PauseAnimation()
+    {
+        GetComponent<Animator>().speed = 0;
     }
 }
