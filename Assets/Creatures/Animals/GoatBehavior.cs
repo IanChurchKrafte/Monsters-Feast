@@ -10,7 +10,7 @@ public class GoatBehavior : GenericAnimal
     public float awareDistance = 5.0f, perceptionDistance = 50.0f;
     internal Transform thisTransform;
     public float moveSpeed = 1.25f;
-    public float fleeSpeed = 0.5f;
+    public float fleeSpeed = 1.15f;
     public float rotationSpeed;
     public Vector2 decisionTime = new Vector2(1, 4);
     internal float decisionTimeCount = 0;
@@ -37,7 +37,7 @@ public class GoatBehavior : GenericAnimal
         thisTransform = this.transform;
         decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
         ChooseMoveDirection();
-        player = GameObject.Find("Player").transform;
+        player = GameObject.FindWithTag("Player").transform;
 
     }
     void ChooseMoveDirection()
@@ -46,12 +46,27 @@ public class GoatBehavior : GenericAnimal
     }
 
     
+<<<<<<< Updated upstream
     // apart of the fleeing function 
+=======
+    private void OnCollisionEnter2D(Collision2D collision)
+     {
+         if (collision.gameObject.CompareTag("Player"))
+         {
+
+             goat.constraints = RigidbodyConstraints2D.FreezeRotation;
+             goat.constraints = RigidbodyConstraints2D.None;
+         }
+     }
+
+
+>>>>>>> Stashed changes
     private void FixedUpdate()
     {
         if(player)
         {
-            goat.velocity = new Vector2(moveDirection.x, moveDirection.y) * fleeSpeed; 
+            goat.velocity = new Vector2(moveDirection.x, moveDirection.y) * moveSpeed * fleeSpeedMultiplyer; 
+            
         }   
     }
 
@@ -60,13 +75,21 @@ public class GoatBehavior : GenericAnimal
        
         if (!isDead)
         {
+<<<<<<< Updated upstream
+=======
+        // move    
+>>>>>>> Stashed changes
             thisTransform.position += moveDirections[currentMoveDirection] * Time.deltaTime * moveSpeed;
             if (decisionTimeCount > 0) decisionTimeCount -= Time.deltaTime;
             else
             {
                 decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
                 ChooseMoveDirection();
+<<<<<<< Updated upstream
             } 
+=======
+            }
+>>>>>>> Stashed changes
         
         //flee function, currently moves faster than it does now 
         if (player)
@@ -75,8 +98,12 @@ public class GoatBehavior : GenericAnimal
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             goat.rotation = angle;
             moveDirection = direction; 
-
+            Debug.Log("Animal is fleeing");
         }
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         }
         else
         {
