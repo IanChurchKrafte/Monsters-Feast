@@ -40,9 +40,16 @@ public class AttackHitbox : MonoBehaviour
                 if (other.gameObject.GetComponent<GenericHuman>() != null)
                     other.gameObject.GetComponent<GenericHuman>().TakeDamage(damage);
             }
-            if (other.gameObject.GetComponent<GenericAnimal>().animalHealth <= 0)
+            if (other.gameObject.GetComponent<GenericAnimal>() != null && other.gameObject.GetComponent<GenericAnimal>().animalHealth <= 0)
             {
                 MonsterBehavior.eatBox.SetActive(true);
+                MonsterBehavior.eatBox.GetComponent<EatBox>().animal = other.gameObject;
+                EatBox.Eat();
+            }
+            if (other.gameObject.GetComponent<GenericHuman>() != null && other.gameObject.GetComponent<GenericHuman>().currentHealth <= 0)
+            {
+                MonsterBehavior.eatBox.SetActive(true);
+                MonsterBehavior.eatBox.GetComponent<EatBox>().animal = other.gameObject;
                 EatBox.Eat();
             }
             gameObject.SetActive(false);

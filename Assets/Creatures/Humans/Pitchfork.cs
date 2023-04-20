@@ -19,7 +19,7 @@ public class Pitchfork : MonoBehaviour
 
         if (monster != null)
         {
-            GameObject spray = Instantiate(blood, transform.position, new Quaternion());
+            GameObject spray = Instantiate(blood, transform.position - Vector3.forward, new Quaternion());
             monster.TakeDamage(damage);
             gameObject.SetActive(false);
         }
@@ -27,14 +27,14 @@ public class Pitchfork : MonoBehaviour
         {
             if (collision.gameObject != owner)
             {
-                GameObject spray = Instantiate(blood, transform.position, new Quaternion());
+                GameObject spray = Instantiate(blood, transform.position - Vector3.forward, new Quaternion());
                 human.TakeDamage(damage);
                 gameObject.SetActive(false);
             }
         }
         if (animal != null)
         {
-            GameObject spray = Instantiate(blood, transform.position, new Quaternion());
+            GameObject spray = Instantiate(blood, transform.position - Vector3.forward, new Quaternion());
             animal.AnimalDamage(damage);
             gameObject.SetActive(false);
         }

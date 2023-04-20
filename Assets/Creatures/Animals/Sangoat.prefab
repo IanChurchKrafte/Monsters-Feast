@@ -109,12 +109,13 @@ MonoBehaviour:
   calories: 0.05
   consumed: 0
   startFlee: 0
+  tookDamage: 0
   awareDistance: 5
   perceptionDistance: 50
-  moveSpeed: 1.25
-  fleeSpeed: 0.5
-  rotationSpeed: 0
-  decisionTime: {x: 1, y: 4}
+  walkSpeed: 1.5
+  sprintSpeed: 2
+  fleeDistance: 10
+  isFleeing: 0
 --- !u!50 &2856538816822898974
 Rigidbody2D:
   serializedVersion: 4

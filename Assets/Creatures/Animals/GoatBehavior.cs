@@ -3,88 +3,172 @@ using System.Collections.Generic;
 using UnityEngine;
 using Animal;
 
-public class GoatBehavior : GenericAnimal 
-{   
-    
-    private Rigidbody2D goat;
-    public float awareDistance = 5.0f, perceptionDistance = 50.0f;
-    internal Transform thisTransform;
-    public float moveSpeed = 1.25f;
-    public float fleeSpeed = 0.5f;
-    public float rotationSpeed;
-    public Vector2 decisionTime = new Vector2(1, 4);
-    internal float decisionTimeCount = 0;
-    internal Vector3[] moveDirections = new Vector3[] { Vector3.right, Vector3.left, Vector3.up, Vector3.down, Vector3.zero, Vector3.zero };
-    internal int currentMoveDirection;
-    Vector2 moveDirection; 
-    private Transform player;
  
+public class GoatBehavior : GenericAnimal
+{
+
+    public float awareDistance = 5.0f, perceptionDistance = 30.0f;
+    public float walkSpeed = 1.5f, sprintSpeed = 3.0f;
+    public float fleeDistance = 10.0f;
+    
+
+
+    Rigidbody2D goat;
+    public bool isFleeing = false;
+    private GameObject player;
+    IEnumerator move;
+    private bool isMoving = false;
+
+    
+    IEnumerator Flee(){
+        
+
+        Vector2 direction = transform.position - player.transform.position;
+        float elapsed = 0f;
+
+        float distanceToPlayer = (player.transform.position - transform.position).magnitude;
+
+        goat.velocity = Vector2.zero;
+
+        while(elapsed < 5.0f && isFleeing){
+            
+            StopCoroutine(move);
+
+            direction = player.transform.position - transform.position;
+
+            distanceToPlayer = (player.transform.position - transform.position).magnitude;
+
+            if(distanceToPlayer < 5.0f){
+                RotateTowardsDirection(direction);
+                direction *= -1.0f;
+                goat.velocity = direction.normalized * speed * fleeSpeedMultiplyer * 1.1f;
+            }
+            else{
+                RotateTowardsDirection(direction);
+                direction *= -1.0f;
+                goat.velocity = direction.normalized * speed * fleeSpeedMultiplyer;
+                
+            }
+
+            elapsed += Time.deltaTime;
+
+            yield return null;
+        }
+
+        goat.velocity = Vector2.zero;
+        isFleeing = false;
+    }
+
+    public void FleeCheck(){ 
+        float distanceToPlayer = (player.transform.position - transform.position).magnitude;
+        
+        if(distanceToPlayer < fleeDistance){
+            
+            StopCoroutine(move);
+            goat.velocity = Vector2.zero;
+
+            StartCoroutine(Flee());
+            
+            isFleeing = true;
+        }
+        if(distanceToPlayer >= fleeDistance && isFleeing){
+            StopCoroutine(Flee());
+            goat.velocity = Vector2.zero;
+            isFleeing = false;
+        }
+    }
+
+    void RotateTowardsDirection(Vector2 direction){
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg + 90;
+        transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+    }
+
+    IEnumerator MoveAround(){
+        Collider2D levelCollider = GameObject.Find("Level 1 Bounds").GetComponent<Collider2D>();
+        Bounds levelBounds = levelCollider.bounds;
+        goat.velocity = Vector2.zero;
+        while(true && !isDead){
+       
+            isMoving = true;
+     
+            Vector2 direction = Random.insideUnitCircle.normalized;
+
+            RotateTowardsDirection(direction);
+
+            float moveTime = Random.Range(2f, 5f);
+            float elapsed = 0f;
+            
+            while(elapsed < moveTime){
+                RotateTowardsDirection(-direction);
+      
+                goat.velocity = (direction) * walkSpeed * 0.65f;
+                
+    
+                elapsed += Time.deltaTime;
+
+                yield return null;
+            }
+            goat.velocity = Vector2.zero;
+ 
+            float waitTime = Random.Range(3f, 5f);
+            elapsed = 0f;
+            while(elapsed < waitTime){
+                elapsed += Time.deltaTime;
+
+                yield return null;
+            }
+            yield return null;
+
+
+        }
+        if(isDead) goat.velocity = Vector2.zero;
+    }
+
+    void MonsterCheck(float Adistance, float Pdistance){ 
+        if(AwarenessCheck(Adistance) || PerceptionCheck(Pdistance)){
+       
+            FleeCheck();
+        }
+    }
+
+
+
     void Start()
     {
+
         goat = GetComponent<Rigidbody2D>();
-        SetAnimalData("Goat", 100, 0.9f, moveSpeed, 1.8f, 0.05f);
-        thisTransform = this.transform;
-        decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
-        ChooseMoveDirection();
-        player = GameObject.Find("Monster").transform;
-
-    }
-    void ChooseMoveDirection()
-    {
-        currentMoveDirection = Mathf.FloorToInt(Random.Range(0, moveDirections.Length));
+        SetAnimalData("Goat", 100, 0.8f, 5.0f, 2, 0.13f); 
+        move = MoveAround();
+        StartCoroutine(move);
+        player = GameObject.Find("Monster"); 
     }
 
-    void MonsterCheck(float adist, float pdist) 
-    {
-        AwarenessCheck(adist);
-        PerceptionCheck(pdist);
-    }
     
-
-    private void FixedUpdate()
-    {
-        if(player)
-        {
-            goat.velocity = new Vector2(moveDirection.x, moveDirection.y) * fleeSpeed; 
-        }   
-    }
-
+    
+    
+ 
     void Update()
-    {   
-       
-        if (!isDead)
-        {
-        // move    
-        thisTransform.position += moveDirections[currentMoveDirection] * Time.deltaTime * moveSpeed;
-        if (decisionTimeCount > 0) decisionTimeCount -= Time.deltaTime;
-        else
-        {
-            decisionTimeCount = Random.Range(decisionTime.x, decisionTime.y);
-            ChooseMoveDirection();
-        }
-        
-        //flee
-        if (player)
-        {
-            Vector3 direction = (transform.position - player.position).normalized;
-            float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            goat.rotation = angle;
-            moveDirection = direction; 
+    {
+        if(!isDead){ 
+            if(isFleeing){
+                StopCoroutine(move);
+                isMoving = false;
+                FleeCheck();
+            }
+            else{
+                if(!isMoving){
+                 
+                    isMoving = true;
+                    StartCoroutine(move);
+                } 
+            
+                MonsterCheck(awareDistance, perceptionDistance);
 
+            }
         }
-
-        MonsterCheck(awareDistance, perceptionDistance);
-        }
-
         else{
-
-            moveSpeed = 0;
-            isDead = true;
-        
+            StopAllCoroutines();
+            isMoving = false;
         }
     }
-   
-
-    }
-    
-    
+}
