@@ -315,7 +315,14 @@ public class ChameleToad : GenericAnimal
     // Update is called once per frame
     void Update()
     {
-        if(!isDead){
+        if(!isDead)
+        {
+            if (tookDamage)
+            {
+                tookDamage = false;
+                isFleeing = true;
+                StartCoroutine(newFrogFlee(GameObject.Find("Monster").transform.position));
+            }
             timer += Time.deltaTime;
 
             //make sure it has the right alpha value

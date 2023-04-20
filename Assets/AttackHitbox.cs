@@ -10,6 +10,7 @@ public class AttackHitbox : MonoBehaviour
     public static int dmg_scale;                                // from lunge attack
     public static bool attacking;
     public static bool lunging;
+    public GameObject blood;
 
     // TRIGGERS WHEN MONSTER TOUCHES ENEMY
     private void OnTriggerEnter2D(Collider2D other)
@@ -21,19 +22,30 @@ public class AttackHitbox : MonoBehaviour
         }
         if (other.gameObject.CompareTag("Animal"))
         {
+            GameObject spray = Instantiate(blood, transform.position - transform.up * 0.5f - Vector3.forward, new Quaternion());
             if (lunging)
             {
-                other.gameObject.GetComponent<GenericAnimal>().AnimalDamage(dmg_scale);
+                if (other.gameObject.GetComponent<GenericAnimal>() != null)
+                    other.gameObject.GetComponent<GenericAnimal>().AnimalDamage(dmg_scale);
+                if (other.gameObject.GetComponent<GenericHuman>() != null)
+                    other.gameObject.GetComponent<GenericHuman>().TakeDamage(dmg_scale);
+                transform.parent.gameObject.GetComponent<MonsterBehavior>().lungeTimer = 0;
+                transform.parent.gameObject.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+                spray.transform.localScale = Vector2.one * (1+ (dmg_scale - 20) / 40);
             }
             else
             {
-                other.gameObject.GetComponent<GenericAnimal>().AnimalDamage(damage);
+                if(other.gameObject.GetComponent<GenericAnimal>() != null)
+                    other.gameObject.GetComponent<GenericAnimal>().AnimalDamage(damage);
+                if (other.gameObject.GetComponent<GenericHuman>() != null)
+                    other.gameObject.GetComponent<GenericHuman>().TakeDamage(damage);
             }
             if (other.gameObject.GetComponent<GenericAnimal>().animalHealth <= 0)
             {
                 MonsterBehavior.eatBox.SetActive(true);
                 EatBox.Eat();
             }
+            gameObject.SetActive(false);
             /*
              // * Monster makes contact with DeerGoose * //
             if (other.gameObject.GetComponent<DeerGoose>())

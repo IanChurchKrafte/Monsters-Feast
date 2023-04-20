@@ -30,6 +30,7 @@ namespace Animal{
         public float consumed = 0;
 
         public bool startFlee = false;
+        public bool tookDamage = false;
 
         public AnimalData animalData;
 
@@ -121,14 +122,17 @@ namespace Animal{
             return false;
         }
 
-        public void AnimalDamage(int dmg){
-            if(animalData.animalHealth - dmg <= 0){
+        public void AnimalDamage(int dmg)
+        {
+            Debug.Log(animalType + " has taken " + dmg + " damage.");
+            if (animalHealth - dmg <= 0){
                 //dead
                 animalHealth = 0;
                 setDead();
             }
             else{
                 animalHealth -= dmg;
+                tookDamage = true;
             }
         }
 

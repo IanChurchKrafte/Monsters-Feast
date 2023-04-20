@@ -66,7 +66,7 @@ public class DeerGoose : GenericAnimal
             if(distanceToPlayer < 5.0f){
                 RotateTowardsDirection(direction);
                 direction *= -1.0f;
-                deerGoose.velocity = direction.normalized * walkSpeed * fleeSpeedMultiplyer;
+                deerGoose.velocity = direction.normalized * speed * fleeSpeedMultiplyer;
             }
             else{
                 RotateTowardsDirection(direction);
@@ -195,7 +195,12 @@ public class DeerGoose : GenericAnimal
     void Update()
     {
         // Debug.Log(deerGoose.velocity);
-        if(!isDead){ 
+        if(!isDead){
+            if (tookDamage)
+            {
+                tookDamage = false;
+                isFleeing = true;
+            }
             if(isFleeing){
                 StopCoroutine(move);
                 isMoving = false;

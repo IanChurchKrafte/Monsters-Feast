@@ -100,8 +100,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee0d25a820cece44a99931d3e0fddb2f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  awake: 0
   animalType: Generic
-  animalHealth: 150
+  animalHealth: 30
   awarenessLevel: 0.5
   speed: 1
   isDead: 0

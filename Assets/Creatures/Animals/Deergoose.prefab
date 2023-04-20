@@ -120,20 +120,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33e50df1f9c7bc542bf600cc756cd039, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  awake: 0
   animalType: Generic
   animalHealth: 150
   awarenessLevel: 0.5
   speed: 1
   isDead: 0
-  fleeSpeedMultiplyer: 1.5
+  fleeSpeedMultiplyer: 2
   calories: 0.18
   consumed: 0
   startFlee: 0
+  tookDamage: 0
   awareDistance: 5
   perceptionDistance: 50
   corpseDistance: 30
   walkSpeed: 1.25
-  sprintSpeed: 1.25
+  sprintSpeed: 2.15
   fleeDistance: 20
   isFleeing: 0
 --- !u!50 &524235686179079201

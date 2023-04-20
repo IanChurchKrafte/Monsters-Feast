@@ -12,6 +12,7 @@ public class GenericHuman : MonoBehaviour
 
     public int maxHealth;
     public int currentHealth;
+    public float calories = 0.1f, consumed;
     //if they are hostile towards the player, will attack on sight
     public bool isHostile = false, isChasing = false;
     //base location
@@ -50,7 +51,7 @@ public class GenericHuman : MonoBehaviour
     // private bool canAttack = true;
 
     public bool isFleeing = false;
-    bool isAttacking = false;
+    public bool isAttacking = false;
 
     //private IEnumerator move, hunt, flee;
     //private Coroutine moveStart = null, huntStart = null, fleeStart = null;
@@ -142,15 +143,16 @@ public class GenericHuman : MonoBehaviour
             //move in that direction
             float moveTime = Random.Range(2f, 5f);
             float elapsed = 0f;
-            while(elapsed < moveTime){
-                transform.Translate(Vector3.up * Time.deltaTime * walkSpeed);// * 0.01f);
+            human.velocity = (-direction) * walkSpeed;
+            while (elapsed < moveTime){
+                //transform.Translate(Vector3.up * Time.deltaTime * walkSpeed);// * 0.01f);
                 // Debug.Log("moving");
                 //update elapsed time
                 elapsed += Time.deltaTime;
 
                 yield return null;
             }
-
+            human.velocity = Vector3.zero;
             //stop moving and wait in place for a bit
             float waitTime = Random.Range(3f, 5f);
             elapsed = 0f;
@@ -188,9 +190,10 @@ public class GenericHuman : MonoBehaviour
                     isAttacking = true;
                     //Debug.Log("trying to attack");
                     direction = player.transform.position - transform.position;
-                    weaponBehavior weapon = transform.GetChild(0).GetComponent<weaponBehavior>();
-                    weapon.Attack(direction);
-                    isAttacking = false;
+                    //weaponBehavior weapon = transform.GetChild(0).GetComponent<weaponBehavior>();
+                    //weapon.Attack(direction);
+                    AttackStart();
+                    human.velocity = Vector2.zero;
                 }
                 else if (!isAttacking){
                     //rotate to player
@@ -199,7 +202,8 @@ public class GenericHuman : MonoBehaviour
                     if(direction.magnitude > 1.9f){
                         Vector2 moveDir = (Vector2)player.transform.position - (Vector2)transform.position;
                         //move towards the player
-                        transform.Translate(moveDir.normalized * runSpeed * Time.deltaTime);
+                        //transform.Translate(moveDir.normalized * runSpeed * Time.deltaTime);
+                        human.velocity = moveDir.normalized * runSpeed;
                     }
                     
                     float distance = direction.magnitude;
@@ -223,6 +227,20 @@ public class GenericHuman : MonoBehaviour
         }
     }
 
+    void AttackStart()
+    {
+        GetComponent<Animator>().SetTrigger("Attacking");
+    }
+    void ActivatePitchfork()
+    {
+        transform.GetChild(0).gameObject.SetActive(true);
+    }
+    void DeactivatePitchfork()
+    {
+        transform.GetChild(0).gameObject.SetActive(false);
+        isAttacking = false;
+    }
+
     IEnumerator Flee(){
         if(!isFleeing) yield return null;
 
@@ -233,18 +251,19 @@ public class GenericHuman : MonoBehaviour
 
         //get distance to base
         float distanceToBase = (baseLocation - (Vector2)transform.position).magnitude;
-
+        human.velocity = (-direction.normalized) * fleeSpeed;
         //move towards the base
-        while(distanceToBase > 5.0f){
+        while (distanceToBase > 5.0f){
             direction = (Vector2)transform.position - baseLocation;
             distanceToBase = (baseLocation - (Vector2)transform.position).magnitude;
             RotateTowardsDirection(direction);
 
             //Debug.Log("Human fleeing to base, distance: "+distanceToBase);
-            transform.Translate(Vector3.up * Time.deltaTime * fleeSpeed);
+            //transform.Translate(Vector3.up * Time.deltaTime * fleeSpeed);
 
             yield return null;
         }
+        human.velocity = Vector2.zero;
         isFleeing = false;
         moveTime = false;
     }
@@ -304,7 +323,7 @@ public class GenericHuman : MonoBehaviour
         //StartCoroutine(Hunting());
         switch(humanType){
             case HumanType.pitchfork:
-                attackRange = 3.0f;
+                attackRange = 1.8f;
                 break;
             case HumanType.crossbow:
                 attackRange = 5.0f;
@@ -346,6 +365,12 @@ public class GenericHuman : MonoBehaviour
             currentHealth = 0;
             isDead = true;
             gameObject.tag = "deadAnimal";
+            gameObject.layer = LayerMask.NameToLayer("DeadAnimal");
+            GetComponent<SpriteRenderer>().color = new Color32(121, 29, 29, 255);
+            GetComponent<Rigidbody2D>().constraints = RigidbodyConstraints2D.FreezePosition;
+            Debug.Log("A human has been killed.");
+            if(humanType != HumanType.ballista)
+                transform.position += new Vector3(0, 0, 0.2f);
         }
         else{
             currentHealth = temp;

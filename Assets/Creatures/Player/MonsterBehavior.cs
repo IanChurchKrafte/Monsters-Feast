@@ -91,13 +91,13 @@ public class MonsterBehavior : MonoBehaviour
             real_speed *= acceleration;
         }
 
-        if (bitePressed)
+        if (bitePressed && attackTimer >= timeToAttack && lungeTimer == 0)
         {
             AttackHitbox.attacking = false;
             attackArea.SetActive(AttackHitbox.attacking);
         }
         // * Bite - only works if stealth is NOT active * //
-        if (!bitePressed && (Input.GetMouseButtonDown(0) || Input.GetAxis("Attack") > 0) && !stealth_active)
+        if (!bitePressed && (Input.GetMouseButtonDown(0) || Input.GetAxis("Attack") > 0) && !stealth_active && lungeTimer == 0)
         {
             Bite();
         }
@@ -256,6 +256,7 @@ public class MonsterBehavior : MonoBehaviour
     // What if monster takes damage?
     public void TakeDamage(int damage)
     {
+        Debug.LogWarning("Player took " + damage + " damage.");
         int temp = currentHealth - damage;
         if(temp <= 0){
             //dead
