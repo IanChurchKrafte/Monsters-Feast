@@ -46,13 +46,16 @@ public class Cow : GenericAnimal
 
         //Debug.Log("start of flee, elapsed: "+elapsed+", isFleeing: "+isFleeing);
         // * cow will flee for 5 seconds * //
-        while(elapsed < 5.0f && isFleeing){
+        GetComponent<Animator>().SetBool("Walking", true);
+        while (elapsed < 5.0f && isFleeing){
             //stop moving
             StopCoroutine(move);
             RotateTowardsDirection(-dir);
-            cow.velocity = dir.normalized * runSpeed * fleeSpeedMultiplyer;
+            cow.velocity = dir.normalized * speed * fleeSpeedMultiplyer;
+            GetComponent<Animator>().SetFloat("WalkSpeed", fleeSpeedMultiplyer);
             yield return null;
         }
+        GetComponent<Animator>().SetBool("Walking", false);
         cow.velocity = Vector2.zero;
         isFleeing = false;
     }
@@ -62,7 +65,8 @@ public class Cow : GenericAnimal
         float distanceToPlayer = (player.transform.position - transform.position).magnitude;
         
         // * cow flees once it gets hit * //
-        if(isHit){
+        if(tookDamage){
+            tookDamage = false;
             // Debug.Log("starting flee in FleeCheck()");
             Debug.Log("Cow is injured. MOO-ve out!");
             StopCoroutine(move);
@@ -90,6 +94,10 @@ public class Cow : GenericAnimal
 
     // * Cow moves around here * //
     IEnumerator MoveAround(){
+        while (!awake)
+        {
+            yield return null;
+        }
         if(cow == null){
             Debug.LogError("No Rigidbody2D attached to Cow");
             yield break;
@@ -108,17 +116,19 @@ public class Cow : GenericAnimal
 
             float moveTime = Random.Range(2f, 5f);
             float elapsed = 0f;
-            
-            while(elapsed < moveTime){
+
+            GetComponent<Animator>().SetBool("Walking", true);
+            while (elapsed < moveTime){
                 RotateTowardsDirection(-dir);
                 // direction *= -1.0f;
-                cow.velocity = dir.normalized * runSpeed;
-                
+                cow.velocity = dir.normalized * speed;
+                GetComponent<Animator>().SetFloat("WalkSpeed", 1);
                 //update elapsed time
                 elapsed += Time.deltaTime;
 
                 yield return null;
             }
+            GetComponent<Animator>().SetBool("Walking", false);
 
             cow.velocity = Vector2.zero;
             float waitTime = Random.Range(3f, 5f);

@@ -51,8 +51,9 @@ public class DeerGoose : GenericAnimal
 
         deerGoose.velocity = Vector2.zero;
 
+        anim.SetBool("Fleeing", true);
         //Debug.Log("start of flee, elapsed: "+elapsed+", isFleeing: "+isFleeing);
-        while(elapsed < 5.0f && isFleeing){
+        while (elapsed < 5.0f && isFleeing){
             //stop moving
             StopCoroutine(move);
 
@@ -83,6 +84,7 @@ public class DeerGoose : GenericAnimal
         //StartCoroutine(MoveAround());
         deerGoose.velocity = Vector2.zero;
         isFleeing = false;
+        anim.SetBool("Fleeing", false);
     }
 
     public void FleeCheck(){ //checks distance from player befor starting/stopping the flee
@@ -91,6 +93,7 @@ public class DeerGoose : GenericAnimal
         if(distanceToPlayer < fleeDistance){
             //Debug.Log("starting flee in FleeCheck()");
             StopCoroutine(move);
+            anim.SetBool("Walking", false);
             deerGoose.velocity = Vector2.zero;
 
             StartCoroutine(Flee());
@@ -100,6 +103,7 @@ public class DeerGoose : GenericAnimal
         if(distanceToPlayer >= fleeDistance && isFleeing){
             //Debug.Log("Stoping flee in FleeCheck()");
             StopCoroutine(Flee());
+            anim.SetBool("Fleeing", false);
             deerGoose.velocity = Vector2.zero;
             isFleeing = false;
             startFlee = false;
@@ -131,7 +135,7 @@ public class DeerGoose : GenericAnimal
             //move in that direction
             float moveTime = Random.Range(2f, 5f);
             float elapsed = 0f;
-            
+            anim.SetBool("Walking", true);
             while(elapsed < moveTime){
                 RotateTowardsDirection(-direction);
                 // direction *= -1.0f;
@@ -142,6 +146,7 @@ public class DeerGoose : GenericAnimal
 
                 yield return null;
             }
+            anim.SetBool("Walking", false);
             deerGoose.velocity = Vector2.zero;
             // isMoving = false;
             //Debug.Log("im still in move around");
@@ -181,7 +186,7 @@ public class DeerGoose : GenericAnimal
         */
         deerGoose = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        SetAnimalData("DeerGoose", 150, 0.8f, 5.0f, 3.0f, 0.18f); //setting the animal data for a DeerGoose
+        SetAnimalData("DeerGoose", 150, 0.8f, 5.0f, 2.0f, 0.18f); //setting the animal data for a DeerGoose
         //currentHealth = maxHealth;
         move = MoveAround();
         StartCoroutine(move);

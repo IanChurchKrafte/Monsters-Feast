@@ -125,7 +125,7 @@ MonoBehaviour:
   currentHealth: 0
   calories: 0.1
   consumed: 0
-  isHostile: 1
+  isHostile: 0
   isChasing: 0
   baseLocation: {x: 22, y: 22}
   humanType: 1

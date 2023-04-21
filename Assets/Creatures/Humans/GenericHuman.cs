@@ -389,6 +389,10 @@ public class GenericHuman : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Cow.cowInjured)
+        {
+            isHostile = true;
+        }
         if(!isDead && humanType != HumanType.ballista){
             //timer += Time.deltaTime;
             

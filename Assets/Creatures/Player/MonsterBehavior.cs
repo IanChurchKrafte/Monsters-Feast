@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+//using UnityEngine.UI;
 
 public class MonsterBehavior : MonoBehaviour
 {
@@ -39,6 +41,8 @@ public class MonsterBehavior : MonoBehaviour
     public bool collided;
     public Vector3 goalPosition;
     Rigidbody2D rb;
+    public GameObject readyPanel, deadPanel;
+    bool startHostility;
 
     // Start is called before the first frame update
     void Start()
@@ -49,11 +53,29 @@ public class MonsterBehavior : MonoBehaviour
         currentHealth = maxHealth;
         attackArea.SetActive(false);
         //eatBox.SetActive(false);
+        startHostility = Cow.cowInjured;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(currentHealth <= 0)
+        {
+            deadPanel.SetActive(true);
+            eatBox.SetActive(false);
+            GetComponent<Animator>().enabled = false;
+            rb.velocity = Vector2.zero;
+            if (Input.GetKeyDown(KeyCode.Joystick1Button1))
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+                Cow.cowInjured = startHostility;
+            }
+            return;
+        }
+        if(sustenance >= 0.75f)
+        {
+            readyPanel.SetActive(true);
+        }
         real_speed = speed;
         // monster movement - WASD or arrow keys
         float h = Input.GetAxis("Horizontal");
